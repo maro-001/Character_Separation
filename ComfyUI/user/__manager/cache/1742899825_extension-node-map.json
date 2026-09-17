@@ -83,6 +83,16 @@
             "title_aux": "ComfyUI-PostFx"
         }
     ],
+    "https://github.com/0xBeycan/ComfyUI-PreFlight": [
+        [
+            "PreFlightObserve",
+            "PreFlightOutcome",
+            "PreFlightReport"
+        ],
+        {
+            "title_aux": "ComfyUI-PreFlight"
+        }
+    ],
     "https://github.com/0xBeycan/ComfyUI-SocialMediaExport": [
         [
             "SocialMediaExport"
@@ -2558,6 +2568,10 @@
             "AcademiaSD_LTXVMultiFrames",
             "AcademiaSD_LoopCounter",
             "AcademiaSD_MaskedNoise",
+            "AcademiaSD_MaxInt",
+            "AcademiaSD_MoviolaGuide",
+            "AcademiaSD_MoviolaIn",
+            "AcademiaSD_MoviolaOut",
             "AcademiaSD_MultiLora",
             "AcademiaSD_MultiPrompt",
             "AcademiaSD_NegativePrompt",
@@ -3898,6 +3912,7 @@
     "https://github.com/ArtemKo7v/ComfyUI-Complex-Prompt": [
         [
             "ArtemKo7vComplexPrompt",
+            "ArtemKo7vComplexPromptCombineVars",
             "ArtemKo7vComplexPromptEmptyString",
             "ArtemKo7vComplexPromptParseJSON",
             "ArtemKo7vComplexPromptSetVariable",
@@ -5263,6 +5278,7 @@
             "BV Subgraph Divider",
             "BV Subgraph Heading",
             "BV Subgraph Spacer",
+            "BV Text",
             "BV Text Log Writer"
         ],
         {
@@ -8267,6 +8283,7 @@
             "DA_PlaySound",
             "DA_PromptFormatter",
             "LoadVideoNode",
+            "LoadVideoNodes2",
             "PresetFloatNode",
             "PresetIntNode",
             "SimpleLoopController",
@@ -9749,6 +9766,7 @@
             "ErePromptExtractor",
             "ErePromptFilter",
             "ErePromptGallery",
+            "ErePromptLoraLoader",
             "ErePromptLoraStack",
             "ErePromptMultiSelect",
             "ErePromptMultiline",
@@ -11493,11 +11511,11 @@
     ],
     "https://github.com/GadzoinksOfficial/comfyui_gprompts": [
         [
-            "Batch Image Loader",
+            "GImageSaveImmich",
+            "GImageSaveWithExtraMetadata",
             "GPrompts",
-            "Save Image With Notes",
-            "Save Image to Immich Server",
-            "String Formatter"
+            "LoadImagesBatch",
+            "StringFormatter"
         ],
         {
             "author": "gadzoinksofficial",
@@ -18332,6 +18350,14 @@
         ],
         {
             "title_aux": "Majoor Assets Manager"
+        }
+    ],
+    "https://github.com/MajoorWaldi/ComfyUI-Majoor-H3-GuideMaster": [
+        [
+            "MajoorH3GuideMaster"
+        ],
+        {
+            "title_aux": "H3 GuideMaster"
         }
     ],
     "https://github.com/MajoorWaldi/ComfyUI-Majoor-ImageOps": [
@@ -27714,7 +27740,9 @@
             "SupersidePortraitSectionsNode",
             "SupersidePreviewImageNode",
             "SupersidePromptBoxNode",
+            "SupersidePromptSlotsNode",
             "SupersidePromptSplitterNode",
+            "SupersidePromptVariantsNode",
             "SupersideResizeLongSideNode",
             "SupersideResizeToMatchNode",
             "SupersideSAM3RegionSelectorNode",
@@ -30197,6 +30225,7 @@
             "XB_INT8ModelSaveROCm",
             "XB_INT8PreLoraLoaderROCm",
             "XB_ImageParamsMaster",
+            "XB_ImagePromptPreset",
             "XB_ImageScale",
             "XB_K2StyleRouter",
             "XB_KSampler",
@@ -30213,6 +30242,7 @@
             "XB_ModelLoaderV3",
             "XB_ModelLoaderV3_GGUF",
             "XB_NodeStatusSwitch",
+            "XB_PlaySound",
             "XB_ROCmKSampler",
             "XB_ROCmKSamplerAdvanced",
             "XB_ROCmLTXVAEDecode",
@@ -33541,6 +33571,7 @@
     ],
     "https://github.com/aiolicollective/aioli-nodes": [
         [
+            "AioliMaskBBox",
             "BBoxMultipleAssembler",
             "BBoxMultipleFix",
             "InpaintColorFix",
@@ -41860,6 +41891,7 @@
             "EmptySD3LatentImage",
             "EmptyTrellis2LatentStructure",
             "EmptyYuE2LatentAudio",
+            "EndLoop",
             "Epsilon Scaling",
             "ExponentialScheduler",
             "ExtendIntermediateSigmas",
@@ -41904,11 +41936,13 @@
             "GeminiNanoBanana2V2",
             "GeminiNode",
             "GeminiNodeV2",
+            "GeminiNodeV3",
             "GeminiVideoOmni",
             "GeminiVideoOmniV2",
             "GenerateTracks",
             "GetICLoRAParameters",
             "GetImageSize",
+            "GetItemFromList",
             "GetMeshInfo",
             "GetSplatCount",
             "GetVideoComponents",
@@ -42079,6 +42113,9 @@
             "LoadVideo",
             "LoadVideoDataSetFromFolder",
             "LoadVideoTextDataSetFromFolder",
+            "LoopIteration",
+            "LoopProgress",
+            "LoopResult",
             "LoraLoader",
             "LoraLoaderBypass",
             "LoraLoaderBypassModelOnly",
@@ -42399,6 +42436,7 @@
             "StableCascade_SuperResolutionControlnet",
             "StableZero123_Conditioning",
             "StableZero123_Conditioning_Batched",
+            "StartLoop",
             "StringCompare",
             "StringConcatenate",
             "StringContains",
@@ -42442,6 +42480,7 @@
             "TestAsyncValidation",
             "TestAsyncValidationError",
             "TestBoolOperationNode",
+            "TestCapturePassthroughSecond",
             "TestCustomIsChanged",
             "TestCustomValidation1",
             "TestCustomValidation2",
@@ -42450,6 +42489,9 @@
             "TestCustomValidation5",
             "TestDynamicAsyncGeneration",
             "TestDynamicDependencyCycle",
+            "TestExecutedNodeIdsBlocking",
+            "TestExecutedNodeIdsChild",
+            "TestExecutedNodeIdsExpander",
             "TestExecutionBlocker",
             "TestFloatConditions",
             "TestForLoopClose",
@@ -43099,6 +43141,7 @@
     "https://github.com/crom8505/ComfyUI-Dynamic-Sigmas": [
         [
             "ConcatSigmas",
+            "Cozdx1SigmasToSchedulerFunc",
             "DynamicSigmaScheduler",
             "GraphSigmas"
         ],
@@ -43518,10 +43561,15 @@
         [
             "AspectRatioSeb",
             "DepthInpaintSeb",
+            "LoadImagesFromFolderSeb",
+            "PanoState360Seb",
+            "PanoSweep360Seb",
+            "Read360Seb",
             "SaveImageSeb",
             "SwitchMasksSeb",
             "SwitchSeb",
-            "UnifiedPrompterSeb"
+            "UnifiedPrompterSeb",
+            "Write360Seb"
         ],
         {
             "title_aux": "Seb Nodes"
@@ -45272,6 +45320,22 @@
             "title_aux": "comfyui-usk-utils"
         }
     ],
+    "https://github.com/domg73/ComfyUI-LoadImageCrop": [
+        [
+            "LoadImageCrop"
+        ],
+        {
+            "title_aux": "ComfyUI-LoadImageCrop"
+        }
+    ],
+    "https://github.com/domg73/ComfyUI-LoadVideoCrop": [
+        [
+            "LoadVideoCrop"
+        ],
+        {
+            "title_aux": "ComfyUI-LoadVideoCrop"
+        }
+    ],
     "https://github.com/domg73/ComfyUI-Storyboard-Tools": [
         [
             "ImageContrastAdjuster",
@@ -45365,6 +45429,7 @@
     ],
     "https://github.com/drago87/Dragos-SceneBuilder": [
         [
+            "DragosCharacterSelector",
             "DragosObject",
             "DragosPromptLoader",
             "DragosSceneCompiler",
@@ -48172,6 +48237,7 @@
             "FL_GeminiImageGenADV",
             "FL_GeminiTextAPI",
             "FL_GeminiVideoCaptioner",
+            "FL_GenerateText",
             "FL_Glitch",
             "FL_GoogleCloudStorage",
             "FL_GoogleDriveDownloader",
@@ -48213,27 +48279,34 @@
             "FL_InpaintCrop",
             "FL_Inpaint_Stitch",
             "FL_IntToFloat",
+            "FL_InteractiveScanFX",
             "FL_JS",
             "FL_KSamplerXYZPlot",
             "FL_KartelJobInput",
             "FL_KartelJobOutput",
+            "FL_KreaReference",
+            "FL_KreaReferenceGuider",
             "FL_KsamplerBasic",
             "FL_KsamplerContextWindow",
             "FL_KsamplerPlus",
             "FL_KsamplerPlusV2",
             "FL_KsamplerSEG",
+            "FL_KsamplerSEGAdvanced",
             "FL_KsamplerSEG_Captioner",
             "FL_KsamplerSEG_Encoder",
+            "FL_KsamplerSEG_Krea",
             "FL_KsamplerSEG_Regions",
             "FL_KsamplerSettings",
             "FL_KsamplerSigma",
             "FL_LTXVMaskedICLoRAGuide",
+            "FL_LayeredParallax",
             "FL_LoadCSV",
             "FL_LoadImage",
             "FL_LoadVideo",
             "FL_MadLibGenerator",
             "FL_Math",
             "FL_MirrorAndAppendCaptions",
+            "FL_ModelDifferenceLoraSave",
             "FL_ModelInspector",
             "FL_NFTGenerator",
             "FL_NodeLoader",
@@ -48249,6 +48322,9 @@
             "FL_Padding",
             "FL_PaddingRemover",
             "FL_PaperDrawn",
+            "FL_ParallaxDepthSources",
+            "FL_ParallaxLayer",
+            "FL_ParallaxStackFromBatch",
             "FL_PasteByMask",
             "FL_PasteOnCanvas",
             "FL_PathAnimator",
@@ -48256,11 +48332,16 @@
             "FL_PixVerseAPI",
             "FL_PixelArtShader",
             "FL_PixelSort",
+            "FL_PosterLayerAsset",
+            "FL_PosterLayerPlanner",
+            "FL_PosterLayerStack",
+            "FL_PosterLayers",
             "FL_ProResVideo",
             "FL_PromptBasic",
             "FL_PromptMulti",
             "FL_PromptSelector",
             "FL_PromptSelectorBasic",
+            "FL_Prompt_Reference_Library",
             "FL_QwenImageEditStrength",
             "FL_RIFE",
             "FL_RandomNumber",
@@ -48279,12 +48360,19 @@
             "FL_SaveRGBAAnimatedWebP",
             "FL_SaveWebM",
             "FL_SaveWebPImage(SaveImage)",
+            "FL_ScanAnalysis",
+            "FL_ScanAnalysisCollect",
+            "FL_ScanAudioEdit",
+            "FL_ScanVideoDetections",
+            "FL_ScanVideoSection",
+            "FL_ScanVideoShots",
             "FL_SchedulerStrings",
             "FL_SendToDiscordWebhook",
             "FL_SeparateMaskComponents",
             "FL_Shadertoy",
             "FL_ShowText",
             "FL_SimpleGPTVision",
+            "FL_StreetScanComposite",
             "FL_StringToLoraName",
             "FL_Switch",
             "FL_Switch_Big",
@@ -48306,8 +48394,10 @@
             "FL_VideoCropMask",
             "FL_VideoCrossfade",
             "FL_VideoCut",
+            "FL_VideoPicker",
             "FL_VideoRecompose",
             "FL_VideoTrim",
+            "FL_VoxelNormalRelief",
             "FL_WF_Agent",
             "FL_WanFirstLastFrameToVideo",
             "FL_WanVaceToVideoMultiRef",
@@ -54323,6 +54413,7 @@
         [
             "ADICOpenAIGPTImage1",
             "ADIC_COMMON_API",
+            "AigcByokDecrypt",
             "AliCloudOSSUpload",
             "IdeaLabImageGenerate",
             "ImageTranslateAPI",
@@ -62047,6 +62138,7 @@
             "CatsAPIGrokImage",
             "CatsAPIGrokImage2",
             "CatsAPIGrokImageVideo",
+            "CatsAPIMidjourney",
             "CatsAPINanoBanana2",
             "CatsAPINanoBananaPro",
             "CatsAPISeedance20",
@@ -64660,7 +64752,9 @@
             "EasyUseAnimaAIOGenerator",
             "EasyUseAnimaAIOHookCombine",
             "EasyUseAnimaArtistMixConditioning",
+            "EasyUseAnimaCivitaiLookup",
             "EasyUseAnimaDetailerAlignHook",
+            "EasyUseAnimaImageMetadata",
             "EasyUseAnimaImageScaleByMultiple",
             "EasyUseAnimaInput",
             "EasyUseAnimaLoraPreset",
@@ -64676,6 +64770,7 @@
             "EasyUseAnimaPromptStudioAdvancedV2",
             "EasyUseAnimaPromptStudioRegional",
             "EasyUseAnimaRegionalConditioning",
+            "EasyUseAnimaSaveImage",
             "EasyUseAnimaTestNode",
             "EasyUseAnimaWildcard",
             "EasyUseAnimaWildcardLora",
@@ -73060,6 +73155,7 @@
             "CreateImageList",
             "HolocineFrames",
             "ImageBlend_GPU",
+            "ImageBlend_GPU_advanced",
             "ImageBlur_GPU",
             "LTX2LoRASelect",
             "LoadModelMeta",
@@ -73070,6 +73166,7 @@
             "LoraRemapStrength",
             "LoraSmartCombine",
             "MatAnyone2",
+            "MiniMaxH3AddMaskedGuide",
             "PowerCompareVideo",
             "PowerLoadVideo",
             "PowerLoraLoaderV2",
@@ -73079,6 +73176,7 @@
             "VideoMergeABC",
             "VideoPrepAB",
             "VideoRGBAnalysis",
+            "VideoStretchStartEnd",
             "WanFMLF",
             "WanScaleAB",
             "WanVideoCacheSamples",
@@ -74086,10 +74184,11 @@
     ],
     "https://github.com/smthemex/ComfyUI_YuE": [
         [
-            "YUE_Stage_A_Loader",
-            "YUE_Stage_A_Sampler",
-            "YUE_Stage_B_Loader",
-            "YUE_Stage_B_Sampler"
+            "YUE_SM_Clip",
+            "YUE_SM_Cond",
+            "YUE_SM_Model",
+            "YUE_SM_Sampler",
+            "YUE_SM_Vae"
         ],
         {
             "title_aux": "ComfyUI_YuE"
@@ -76846,6 +76945,7 @@
             "LoadWebcamImage",
             "Load_Random_Text_From_File",
             "MiniMaxH3AddGuideFrames",
+            "MinimaxH3Camera",
             "MinimaxH3Prompter",
             "OpenposeEditorNode",
             "PoseKeypointToCoordStr",
@@ -78020,6 +78120,14 @@
             "title_aux": "ComfyUI-Kie-API-Serverless"
         }
     ],
+    "https://github.com/v3rm1ll1on/ComfyUI-Expert-Wildcard-Prompt": [
+        [
+            "ExpertTextPrompt"
+        ],
+        {
+            "title_aux": "ComfyUI Expert Wildcard Prompt"
+        }
+    ],
     "https://github.com/vadimcro/VKRiez-Edge": [
         [
             "VKriezEnhancedEdgePreprocessor",
@@ -78761,6 +78869,7 @@
             "MatchGrainToReference",
             "MiniMaxH3TurboLoRA",
             "SRTLyricsMerger",
+            "VRGDGEnsureVideoAudio",
             "VRGDGFaceFixComposite",
             "VRGDGFaceFixCompositeLandmarkAligned",
             "VRGDGFaceFixCompositeOpaque",
@@ -78773,6 +78882,8 @@
             "VRGDGFaceFixPrepareVideoShotAware",
             "VRGDGFaceFixSaveFramesVideo",
             "VRGDGFaceFixStoreAnchors",
+            "VRGDGLongVideoMetaBatchLoader",
+            "VRGDGMiniMaxUpscalerControlPanel",
             "VRGDGOverlapAudioWindow",
             "VRGDGOverlapBlend",
             "VRGDGOverlapMetaBatchManager",
@@ -78873,6 +78984,12 @@
             "VRGDG_LoadTextAdvanced",
             "VRGDG_LoadVideos",
             "VRGDG_LocalLLM",
+            "VRGDG_LongShotAutoDirectorContext",
+            "VRGDG_LongShotCollectFourKeyframes",
+            "VRGDG_LongShotKeyframeDirectorContext",
+            "VRGDG_LongShotKeyframePromptExtractor",
+            "VRGDG_LongShotLLMContext",
+            "VRGDG_LongShotPlanExtractor",
             "VRGDG_LoraDatasetCreatorUI",
             "VRGDG_LoraFromPathModelOnly",
             "VRGDG_LyricSegmentDurationMerger",
@@ -78886,9 +79003,12 @@
             "VRGDG_ManualLyricsExtractor_SRT_Advanced_BeatV9",
             "VRGDG_MetaAIBrowserImage",
             "VRGDG_MiniMaxH3AudioDrive",
+            "VRGDG_MiniMaxH3ConnectedChunk",
+            "VRGDG_MiniMaxH3FinishChunk",
             "VRGDG_MiniMaxH3ImageReferenceToVideo",
             "VRGDG_MiniMaxH3LatentUpscaleModelLoader",
             "VRGDG_MiniMaxH3LearnedLatentUpscale",
+            "VRGDG_MiniMaxH3PrepareCleanAudio",
             "VRGDG_MiniMaxH3ReferenceMediaFromPaths",
             "VRGDG_MiniMaxH3ReplaceUpscaledVideoLatent",
             "VRGDG_MiniMaxH3SelectStillFrame",
@@ -80012,6 +80132,7 @@
             "TuringUtilsMultimodalChatOptions",
             "TuringUtilsMultimodalPromptChat",
             "TuringUtilsResizeImageIfPresent",
+            "TuringUtilsSetVideoLatentNoiseMask",
             "TuringUtilsSlaAttentionStrategy",
             "TuringUtilsSolAttentionStrategy",
             "TuringUtilsStageBarrier",
@@ -80440,6 +80561,7 @@
             "QwenLoader",
             "ReCamMasterPoseVisualizer",
             "TextImageEncodeQwenVL",
+            "WanAnimatePlus Animate2 Embeds",
             "WanAnimatePlus AnimateEmbeds",
             "WanAnimatePlus Bernini",
             "WanAnimatePlus BlockSwap",

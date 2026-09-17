@@ -1,89 +1,93 @@
 ## ComfyUI-Manager: installing dependencies done.
-[2026-09-14 22:56:27.491] ** ComfyUI startup time: 2026-09-14 22:56:27.491
-[2026-09-14 22:56:27.491] ** Platform: Windows
-[2026-09-14 22:56:27.492] ** Python version: 3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]
-[2026-09-14 22:56:27.492] ** Python executable: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\.venv\Scripts\python.exe
-[2026-09-14 22:56:27.492] ** ComfyUI Path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI
-[2026-09-14 22:56:27.492] ** ComfyUI Base Folder Path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI
-[2026-09-14 22:56:27.492] ** User directory: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\user
-[2026-09-14 22:56:27.493] ** ComfyUI-Manager config path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\user\__manager\config.ini
-[2026-09-14 22:56:27.493] ** Log path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\user\comfyui.log
+[2026-09-17 14:22:15.633] ** ComfyUI startup time: 2026-09-17 14:22:15.633
+[2026-09-17 14:22:15.634] ** Platform: Windows
+[2026-09-17 14:22:15.634] ** Python version: 3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]
+[2026-09-17 14:22:15.634] ** Python executable: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\.venv\Scripts\python.exe
+[2026-09-17 14:22:15.635] ** ComfyUI Path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI
+[2026-09-17 14:22:15.635] ** ComfyUI Base Folder Path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI
+[2026-09-17 14:22:15.635] ** User directory: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\user
+[2026-09-17 14:22:15.636] ** ComfyUI-Manager config path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\user\__manager\config.ini
+[2026-09-17 14:22:15.637] ** Log path: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\user\comfyui.log
 
 Prestartup times for custom nodes:
-[2026-09-14 22:56:27.759]    3.6 seconds: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\custom_nodes\comfyui-manager
-[2026-09-14 22:56:27.759] 
-[2026-09-14 22:56:39.702] WARNING: You need pytorch with cu130 or higher to use optimized CUDA operations.
+[2026-09-17 14:22:15.887]    1.7 seconds: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\custom_nodes\comfyui-manager
+[2026-09-17 14:22:15.887] 
+[2026-09-17 14:22:20.420] WARNING: You need pytorch with cu130 or higher to use optimized CUDA operations.
 WARNING WARNING WARNING
 If you are on nvidia 20 series and above it is required that you update your pytorch to cu130 or higher.
 
-[2026-09-14 22:56:39.702] Found comfy_kitchen backend triton: {'available': False, 'disabled': True, 'unavailable_reason': "ImportError: No module named 'triton'", 'capabilities': []}
-[2026-09-14 22:56:39.703] Found comfy_kitchen backend hip: {'available': False, 'disabled': False, 'unavailable_reason': 'PyTorch ROCm/HIP runtime not available', 'capabilities': []}
-[2026-09-14 22:56:39.703] Found comfy_kitchen backend cuda: {'available': True, 'disabled': True, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}
-[2026-09-14 22:56:39.703] Found comfy_kitchen backend eager: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_embedding', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_mxfp8', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_mxfp8', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}
-[2026-09-14 22:56:39.738] Checkpoint files will always be loaded safely.
-[2026-09-14 22:56:39.979] Total VRAM 8191 MB, total RAM 32690 MB
-[2026-09-14 22:56:39.980] pytorch version: 2.11.0+cu128
-[2026-09-14 22:56:39.981] Set vram state to: NORMAL_VRAM
-[2026-09-14 22:56:39.982] Device: cuda:0 NVIDIA GeForce RTX 3070 : cudaMallocAsync
-[2026-09-14 22:56:40.004] Using async weight offloading with 2 streams
-[2026-09-14 22:56:40.005] Enabled pinned memory 13076.0
-[2026-09-14 22:56:40.092] Using pytorch attention
-[2026-09-14 22:57:02.648] aimdo: src-win/cuda-detour.c:38:INFO:aimdo_setup_hooks: installing 6 hooks
-[2026-09-14 22:57:02.678] aimdo: src/control.c:269:INFO:comfy-aimdo NVML pressure enabled
-[2026-09-14 22:57:02.692] aimdo: src-win/shmem-detect.c:80:INFO:comfy-aimdo WDDM adapter match: NVIDIA GeForce RTX 3070 runtime_luid=00000000:0000c55c dxgi_luid=00000000:0000c55c
-[2026-09-14 22:57:02.693] aimdo: src/control.c:284:INFO:comfy-aimdo inited for GPU: NVIDIA GeForce RTX 3070 (VRAM: 8191 MB)
-[2026-09-14 22:57:02.693] DynamicVRAM support detected and enabled
-[2026-09-14 22:57:02.693] Python version: 3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]
-[2026-09-14 22:57:02.693] ComfyUI version: 0.35.0
-[2026-09-14 22:57:02.694] comfy-aimdo version: 0.5.3
-[2026-09-14 22:57:02.695] comfy-kitchen version: 0.2.33
-[2026-09-14 22:57:02.695] WARNING: Python 3.10 will be EOL on October 31 2026, please consider upgrading to a newer version.
-[2026-09-14 22:57:02.704] comfyui-frontend-package version: 1.52.7
-[2026-09-14 22:57:02.704] comfyui-workflow-templates version: 0.11.59
-[2026-09-14 22:57:02.704] comfyui-embedded-docs version: 0.5.11
-[2026-09-14 22:57:02.704] comfy-kitchen version: 0.2.33
-[2026-09-14 22:57:02.704] comfy-aimdo version: 0.5.3
-[2026-09-14 22:57:02.706] [Prompt Server] web root: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\.venv\lib\site-packages\comfyui_frontend_package\static
-[2026-09-14 22:57:02.707] Asset seeder disabled
-[2026-09-14 22:57:04.046] No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
-[2026-09-14 22:57:05.527] ### Loading: ComfyUI-Manager (V3.41)
-[2026-09-14 22:57:05.527] [ComfyUI-Manager] network_mode: public
-[2026-09-14 22:57:05.527] [ComfyUI-Manager] ComfyUI per-queue preview override detected (PR #11261). Manager's preview method feature is disabled. Use ComfyUI's --preview-method CLI option or 'Settings > Execution > Live preview method'.
-[2026-09-14 22:57:05.731] ### ComfyUI Revision: 1 [c75d8c96] | Released on '2026-09-12'
-[2026-09-14 22:57:06.219] 
+[2026-09-17 14:22:20.421] Found comfy_kitchen backend hip: {'available': False, 'disabled': False, 'unavailable_reason': 'PyTorch ROCm/HIP runtime not available', 'capabilities': []}
+[2026-09-17 14:22:20.421] Found comfy_kitchen backend triton: {'available': False, 'disabled': True, 'unavailable_reason': "ImportError: No module named 'triton'", 'capabilities': []}
+[2026-09-17 14:22:20.421] Found comfy_kitchen backend eager: {'available': True, 'disabled': False, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_embedding', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_mxfp8', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'int8_linear', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_mxfp8', 'scaled_mm_nvfp4', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}
+[2026-09-17 14:22:20.421] Found comfy_kitchen backend cuda: {'available': True, 'disabled': True, 'unavailable_reason': None, 'capabilities': ['adaln', 'apply_rope', 'apply_rope1', 'apply_rope1_', 'apply_rope_', 'apply_rope_split_half', 'apply_rope_split_half1', 'apply_rope_split_half1_', 'apply_rope_split_half_', 'convrot_w4a4_linear', 'dequantize_convrot_w4a4_weight', 'dequantize_int8_convrot_weight', 'dequantize_int8_convrot_weight_dtype', 'dequantize_int8_simple', 'dequantize_int8_simple_dtype', 'dequantize_nvfp4', 'dequantize_per_tensor_fp8', 'dequantize_w4a8_int8_weight', 'gemv_awq_w4a16', 'na3d', 'prepare_int4_weight_for_int8_linear', 'quantize_and_rotate_rowwise', 'quantize_convrot_w4a4_weight', 'quantize_int8_convrot_weight', 'quantize_int8_rowwise', 'quantize_int8_tensorwise', 'quantize_mxfp8', 'quantize_nvfp4', 'quantize_per_tensor_fp8', 'quantize_svdquant_w4a4', 'quantize_w4a8_int8_weight', 'rms_adaln', 'rms_rope', 'rms_rope1', 'rms_rope1_', 'rms_rope_', 'rms_rope_split_half', 'rms_rope_split_half1', 'rms_rope_split_half1_', 'rms_rope_split_half_', 'rotate_int8_convrot_weight', 'scaled_mm_svdquant_w4a4', 'sol_attn', 'stochastic_rounding_fp8', 'w4a8_int8_linear']}
+[2026-09-17 14:22:20.431] Checkpoint files will always be loaded safely.
+[2026-09-17 14:22:20.569] Total VRAM 8191 MB, total RAM 32690 MB
+[2026-09-17 14:22:20.570] pytorch version: 2.11.0+cu128
+[2026-09-17 14:22:20.571] Set vram state to: NORMAL_VRAM
+[2026-09-17 14:22:20.572] Device: cuda:0 NVIDIA GeForce RTX 3070 : cudaMallocAsync
+[2026-09-17 14:22:20.587] Using async weight offloading with 2 streams
+[2026-09-17 14:22:20.587] Enabled pinned memory 13076.0
+[2026-09-17 14:22:20.633] Using pytorch attention
+[2026-09-17 14:22:23.670] aimdo: src-win/cuda-detour.c:38:INFO:aimdo_setup_hooks: installing 6 hooks
+[2026-09-17 14:22:23.701] aimdo: src/control.c:269:INFO:comfy-aimdo NVML pressure enabled
+[2026-09-17 14:22:23.713] aimdo: src-win/shmem-detect.c:80:INFO:comfy-aimdo WDDM adapter match: NVIDIA GeForce RTX 3070 runtime_luid=00000000:0000c385 dxgi_luid=00000000:0000c385
+[2026-09-17 14:22:23.713] aimdo: src/control.c:284:INFO:comfy-aimdo inited for GPU: NVIDIA GeForce RTX 3070 (VRAM: 8191 MB)
+[2026-09-17 14:22:23.713] DynamicVRAM support detected and enabled
+[2026-09-17 14:22:23.714] Python version: 3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]
+[2026-09-17 14:22:23.714] ComfyUI version: 0.35.0
+[2026-09-17 14:22:23.715] comfy-aimdo version: 0.5.3
+[2026-09-17 14:22:23.716] comfy-kitchen version: 0.2.33
+[2026-09-17 14:22:23.716] WARNING: Python 3.10 will be EOL on October 31 2026, please consider upgrading to a newer version.
+[2026-09-17 14:22:23.723] comfyui-frontend-package version: 1.52.7
+[2026-09-17 14:22:23.723] comfyui-workflow-templates version: 0.11.59
+[2026-09-17 14:22:23.723] comfyui-embedded-docs version: 0.5.11
+[2026-09-17 14:22:23.723] comfy-kitchen version: 0.2.33
+[2026-09-17 14:22:23.723] comfy-aimdo version: 0.5.3
+[2026-09-17 14:22:23.726] [Prompt Server] web root: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\.venv\lib\site-packages\comfyui_frontend_package\static
+[2026-09-17 14:22:23.727] Asset seeder disabled
+[2026-09-17 14:22:24.716] No OpenGL_accelerate module loaded: No module named 'OpenGL_accelerate'
+[2026-09-17 14:22:25.891] ### Loading: ComfyUI-Manager (V3.41)
+[2026-09-17 14:22:25.892] [ComfyUI-Manager] network_mode: public
+[2026-09-17 14:22:25.892] [ComfyUI-Manager] ComfyUI per-queue preview override detected (PR #11261). Manager's preview method feature is disabled. Use ComfyUI's --preview-method CLI option or 'Settings > Execution > Live preview method'.
+[2026-09-17 14:22:26.133] ### ComfyUI Revision: 1 [c75d8c96] | Released on '2026-09-12'
+[2026-09-17 14:22:26.606] 
 Import times for custom nodes:
-[2026-09-14 22:57:06.219]    0.0 seconds: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\custom_nodes\websocket_image_save.py
-[2026-09-14 22:57:06.219]    0.7 seconds: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\custom_nodes\comfyui-manager
-[2026-09-14 22:57:06.219] 
-[2026-09-14 22:57:06.237] Context impl SQLiteImpl.
-[2026-09-14 22:57:06.237] Will assume non-transactional DDL.
-[2026-09-14 22:57:06.284] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/model-list.json
-[2026-09-14 22:57:06.292] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/alter-list.json
-[2026-09-14 22:57:06.349] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/github-stats.json
-[2026-09-14 22:57:06.473] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/extension-node-map.json
-[2026-09-14 22:57:06.595] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json
-[2026-09-14 22:57:06.795] Using RAM pressure cache.
-[2026-09-14 22:57:06.796] Starting server
+[2026-09-17 14:22:26.606]    0.0 seconds: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\custom_nodes\websocket_image_save.py
+[2026-09-17 14:22:26.606]    0.7 seconds: D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\custom_nodes\comfyui-manager
+[2026-09-17 14:22:26.606] 
+[2026-09-17 14:22:26.610] Context impl SQLiteImpl.
+[2026-09-17 14:22:26.610] Will assume non-transactional DDL.
+[2026-09-17 14:22:26.649] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/alter-list.json
+[2026-09-17 14:22:26.666] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/model-list.json
+[2026-09-17 14:22:26.712] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/github-stats.json
+[2026-09-17 14:22:26.821] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/extension-node-map.json
+[2026-09-17 14:22:26.926] [ComfyUI-Manager] default cache updated: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json
+[2026-09-17 14:22:27.038] Using RAM pressure cache.
+[2026-09-17 14:22:27.039] Starting server
 
-[2026-09-14 22:57:06.796] To see the GUI go to: http://127.0.0.1:8188
-[2026-09-14 22:57:13.095] got prompt
-[2026-09-14 22:57:13.121] Using pytorch attention in VAE
-[2026-09-14 22:57:13.121] Using pytorch attention in VAE
-[2026-09-14 22:57:13.263] VAE load device: cuda:0, offload device: cpu, dtype: torch.bfloat16
-[2026-09-14 22:57:13.764] CLIP/text encoder model load device: cuda:0, offload device: cpu, current: cpu, dtype: torch.float16
-[2026-09-14 22:57:13.767] Requested to load AnimaTEModel_
-[2026-09-14 22:57:13.937] Model AnimaTEModel_ prepared for dynamic VRAM loading. 1136MB Staged. 0 patches attached. Force pre-loaded 113 weights: 128 KB.
-[2026-09-14 22:57:15.123] Model AnimaTEModel_ prepared for dynamic VRAM loading. 1136MB Staged. 0 patches attached. Force pre-loaded 113 weights: 128 KB.
-[2026-09-14 22:57:15.244] model weight dtype torch.bfloat16, manual cast: None
-[2026-09-14 22:57:15.250] model_type FLOW
-[2026-09-14 22:57:15.439] Requested to load Anima
-[2026-09-14 22:57:15.540] Model Anima prepared for dynamic VRAM loading. 3988MB Staged. 280 patches attached. Force pre-loaded 156 weights: 77 KB.
-[2026-09-14 22:57:25.536] 100%|██████████| 8/8 [00:03<00:00,  1.43it/s]100%|██████████| 8/8 [00:03<00:00,  2.15it/s]
-[2026-09-14 22:57:27.041] Requested to load WanVAE
-[2026-09-14 22:57:27.044] 0 models unloaded.
-[2026-09-14 22:57:27.070] Model WanVAE prepared for dynamic VRAM loading. 241MB Staged. 0 patches attached. Force pre-loaded 60 weights: 61 KB.
-[2026-09-14 22:57:28.218] Prompt executed in 15.12 seconds
-[2026-09-14 22:59:53.228] FETCH ComfyRegistry Data [DONE]
-[2026-09-14 22:59:53.611] [ComfyUI-Manager] default cache updated: https://api.comfy.org/nodes
-[2026-09-14 22:59:53.654] FETCH DATA from: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json [DONE]
-[2026-09-14 22:59:53.898] [ComfyUI-Manager] All startup tasks have been completed.
+[2026-09-17 14:22:27.039] To see the GUI go to: http://127.0.0.1:8188
+[2026-09-17 14:25:13.942] FETCH ComfyRegistry Data [DONE]
+[2026-09-17 14:25:14.246] [ComfyUI-Manager] default cache updated: https://api.comfy.org/nodes
+[2026-09-17 14:25:14.285] FETCH DATA from: https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json [DONE]
+[2026-09-17 14:25:14.512] [ComfyUI-Manager] All startup tasks have been completed.
+[2026-09-17 14:25:53.435] got prompt
+[2026-09-17 14:25:53.454] Using pytorch attention in VAE
+[2026-09-17 14:25:53.456] Using pytorch attention in VAE
+[2026-09-17 14:25:53.560] VAE load device: cuda:0, offload device: cpu, dtype: torch.bfloat16
+[2026-09-17 14:25:54.038] CLIP/text encoder model load device: cuda:0, offload device: cpu, current: cpu, dtype: torch.float16
+[2026-09-17 14:25:54.040] Requested to load AnimaTEModel_
+[2026-09-17 14:25:54.110] Model AnimaTEModel_ prepared for dynamic VRAM loading. 1136MB Staged. 0 patches attached. Force pre-loaded 113 weights: 128 KB.
+[2026-09-17 14:25:54.931] Model AnimaTEModel_ prepared for dynamic VRAM loading. 1136MB Staged. 0 patches attached. Force pre-loaded 113 weights: 128 KB.
+[2026-09-17 14:25:55.259] model weight dtype torch.bfloat16, manual cast: None
+[2026-09-17 14:25:55.262] model_type FLOW
+[2026-09-17 14:25:55.316] Requested to load Anima
+[2026-09-17 14:25:55.402] Model Anima prepared for dynamic VRAM loading. 3988MB Staged. 280 patches attached. Force pre-loaded 156 weights: 77 KB.
+[2026-09-17 14:26:00.822] 100%|████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:03<00:00,  1.64it/s]100%|████████████████████████████████████████████████████████████████████████████████████| 8/8 [00:03<00:00,  2.48it/s]
+[2026-09-17 14:26:02.194] Requested to load WanVAE
+[2026-09-17 14:26:02.196] 0 models unloaded.
+[2026-09-17 14:26:02.215] Model WanVAE prepared for dynamic VRAM loading. 241MB Staged. 0 patches attached. Force pre-loaded 60 weights: 61 KB.
+[2026-09-17 14:26:02.929] Prompt executed in 9.49 seconds
+[2026-09-17 14:26:11.615] [DEPRECATION WARNING] Detected import of deprecated legacy API: /scripts/ui.js. This is likely caused by a custom node extension using outdated APIs. Please update your extensions or contact the extension author for an updated version.
+[2026-09-17 14:26:11.623] [DEPRECATION WARNING] Detected import of deprecated legacy API: /extensions/core/groupNode.js. This is likely caused by a custom node extension using outdated APIs. Please update your extensions or contact the extension author for an updated version.
+[2026-09-17 14:26:12.100] [DEPRECATION WARNING] Detected import of deprecated legacy API: /scripts/ui/components/buttonGroup.js. This is likely caused by a custom node extension using outdated APIs. Please update your extensions or contact the extension author for an updated version.
+[2026-09-17 14:26:12.108] [DEPRECATION WARNING] Detected import of deprecated legacy API: /scripts/ui/components/button.js. This is likely caused by a custom node extension using outdated APIs. Please update your extensions or contact the extension author for an updated version.
