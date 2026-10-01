@@ -1,0 +1,1461 @@
+{
+  "id": "620c35a4-6133-4c72-8ec8-048181430a69",
+  "revision": 3,
+  "last_node_id": 56,
+  "last_link_id": 114,
+  "nodes": [
+    {
+      "id": 45,
+      "type": "CLIPLoader",
+      "pos": [
+        50,
+        100
+      ],
+      "size": [
+        310,
+        150
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "CLIP 파일명",
+          "name": "clip_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "clip_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "유형",
+          "name": "type",
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "장치",
+          "name": "device",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "device"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "CLIP",
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            81,
+            80
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.11.0",
+        "Node name for S&R": "CLIPLoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "qwen_3_06b_base.safetensors",
+        "stable_diffusion",
+        "default"
+      ],
+      "widgets_values_named": {
+        "clip_name": "qwen_3_06b_base.safetensors",
+        "type": "stable_diffusion",
+        "device": "default"
+      }
+    },
+    {
+      "id": 15,
+      "type": "VAELoader",
+      "pos": [
+        420,
+        570
+      ],
+      "size": [
+        310,
+        100
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "vae 파일명",
+          "name": "vae_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "vae_name"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VAE",
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.40",
+        "Node name for S&R": "VAELoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "qwen_image_vae.safetensors"
+      ],
+      "widgets_values_named": {
+        "vae_name": "qwen_image_vae.safetensors"
+      }
+    },
+    {
+      "id": 8,
+      "type": "VAEDecode",
+      "pos": [
+        1380,
+        100
+      ],
+      "size": [
+        230,
+        90
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "samples",
+          "type": "LATENT",
+          "link": 10
+        },
+        {
+          "localized_name": "vae",
+          "name": "vae",
+          "type": "VAE",
+          "link": 11
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "이미지",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            105
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.40",
+        "Node name for S&R": "VAEDecode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      }
+    },
+    {
+      "id": 28,
+      "type": "EmptyLatentImage",
+      "pos": [
+        850,
+        650
+      ],
+      "size": [
+        310,
+        150
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "너비",
+          "name": "width",
+          "type": "INT",
+          "widget": {
+            "name": "width"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "높이",
+          "name": "height",
+          "type": "INT",
+          "widget": {
+            "name": "height"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "배치 크기",
+          "name": "batch_size",
+          "type": "INT",
+          "widget": {
+            "name": "batch_size"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            78
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.40",
+        "Node name for S&R": "EmptyLatentImage",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        1024,
+        1024,
+        1
+      ],
+      "widgets_values_named": {
+        "width": 1024,
+        "height": 1024,
+        "batch_size": 1
+      }
+    },
+    {
+      "id": 19,
+      "type": "KSampler",
+      "pos": [
+        1000,
+        100
+      ],
+      "size": [
+        315,
+        474
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "모델",
+          "name": "model",
+          "type": "MODEL",
+          "link": 109
+        },
+        {
+          "localized_name": "긍정 조건",
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 39
+        },
+        {
+          "localized_name": "부정 조건",
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 40
+        },
+        {
+          "localized_name": "잠재 데이터",
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 78
+        },
+        {
+          "localized_name": "시드",
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "스텝 수",
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cfg",
+          "name": "cfg",
+          "type": "FLOAT",
+          "widget": {
+            "name": "cfg"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "샘플러 이름",
+          "name": "sampler_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "sampler_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "스케줄러",
+          "name": "scheduler",
+          "type": "COMBO",
+          "widget": {
+            "name": "scheduler"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "노이즈 제거양",
+          "name": "denoise",
+          "type": "FLOAT",
+          "widget": {
+            "name": "denoise"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "잠재 데이터",
+          "name": "LATENT",
+          "type": "LATENT",
+          "slot_index": 0,
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.40",
+        "Node name for S&R": "KSampler",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        672061000839049,
+        "randomize",
+        8,
+        1,
+        "euler",
+        "simple",
+        1
+      ],
+      "widgets_values_named": {
+        "seed": 672061000839049,
+        "control_after_generate": "randomize",
+        "steps": 8,
+        "cfg": 1,
+        "sampler_name": "euler",
+        "scheduler": "simple",
+        "denoise": 1
+      }
+    },
+    {
+      "id": 44,
+      "type": "UNETLoader",
+      "pos": [
+        -1500,
+        100
+      ],
+      "size": [
+        310,
+        130
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "UNet 모델 파일명",
+          "name": "unet_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "unet_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "가중치 데이터 유형",
+          "name": "weight_dtype",
+          "type": "COMBO",
+          "widget": {
+            "name": "weight_dtype"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "모델",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            79
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.11.0",
+        "Node name for S&R": "UNETLoader",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "anima_turboV11.safetensors",
+        "default"
+      ],
+      "widgets_values_named": {
+        "unet_name": "anima_turboV11.safetensors",
+        "weight_dtype": "default"
+      }
+    },
+    {
+      "id": 46,
+      "type": "LoraLoaderModelOnly",
+      "pos": [
+        -1100,
+        100
+      ],
+      "size": [
+        270,
+        120
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "모델",
+          "name": "model",
+          "type": "MODEL",
+          "link": 79
+        },
+        {
+          "localized_name": "LoRA 이름",
+          "name": "lora_name",
+          "type": "COMBO",
+          "widget": {
+            "name": "lora_name"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "모델 강도",
+          "name": "strength_model",
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength_model"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "모델",
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            106
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0",
+        "Node name for S&R": "LoraLoaderModelOnly"
+      },
+      "widgets_values": [
+        "Anima_Style_Lora.safetensors",
+        1
+      ],
+      "widgets_values_named": {
+        "lora_name": "Anima_Style_Lora.safetensors",
+        "strength_model": 1
+      }
+    },
+    {
+      "id": 12,
+      "type": "CLIPTextEncode",
+      "pos": [
+        420,
+        350
+      ],
+      "size": [
+        490,
+        140
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 81
+        },
+        {
+          "localized_name": "프롬프트 텍스트",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "조건",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            40
+          ]
+        }
+      ],
+      "title": "프롬프트 (Negative Prompt)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.65",
+        "Node name for S&R": "CLIPTextEncode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "worst quality, low quality, blurry, jpeg artifacts"
+      ],
+      "widgets_values_named": {
+        "text": "worst quality, low quality, blurry, jpeg artifacts"
+      },
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 47,
+      "type": "SaveImage",
+      "pos": [
+        1670,
+        100
+      ],
+      "size": [
+        315,
+        270
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "이미지",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 105
+        },
+        {
+          "localized_name": "파일명 접두사",
+          "name": "filename_prefix",
+          "type": "STRING",
+          "widget": {
+            "name": "filename_prefix"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.35.0",
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ControlNet/Character_Separation"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "ControlNet/Character_Separation"
+      }
+    },
+    {
+      "id": 11,
+      "type": "CLIPTextEncode",
+      "pos": [
+        420,
+        100
+      ],
+      "size": [
+        490,
+        220
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "type": "CLIP",
+          "link": 80
+        },
+        {
+          "localized_name": "프롬프트 텍스트",
+          "name": "text",
+          "type": "STRING",
+          "widget": {
+            "name": "text"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "조건",
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            39
+          ]
+        }
+      ],
+      "title": "프롬프트 (Positive Prompt)",
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.3.65",
+        "Node name for S&R": "CLIPTextEncode",
+        "enableTabs": false,
+        "tabWidth": 65,
+        "tabXOffset": 10,
+        "hasSecondTab": false,
+        "secondTabText": "Send Back",
+        "secondTabOffset": 80,
+        "secondTabWidth": 65
+      },
+      "widgets_values": [
+        "best quality, \na two knight, man, The full armor\ncastle background\nleft knight on sword,\nright knight to be stabbed by a sword"
+      ],
+      "widgets_values_named": {
+        "text": "best quality, \na two knight, man, The full armor\ncastle background\nleft knight on sword,\nright knight to be stabbed by a sword"
+      },
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 48,
+      "type": "LoadImage",
+      "title": "1. 포즈 참고 이미지",
+      "pos": [
+        -1500,
+        850
+      ],
+      "size": [
+        320,
+        380
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "image"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            110
+          ]
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "controlnet_reference_knights.png",
+        "image"
+      ],
+      "widgets_values_named": {
+        "image": "controlnet_reference_knights.png"
+      }
+    },
+    {
+      "id": 55,
+      "type": "ImageScale",
+      "title": "2. 본 캔버스 크기 (Latent와 동일)",
+      "pos": [
+        -1140,
+        850
+      ],
+      "size": [
+        290,
+        180
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 110
+        },
+        {
+          "name": "upscale_method",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "upscale_method"
+          }
+        },
+        {
+          "name": "width",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "width"
+          }
+        },
+        {
+          "name": "height",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "height"
+          }
+        },
+        {
+          "name": "crop",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "crop"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            111
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageScale"
+      },
+      "widgets_values": [
+        "lanczos",
+        1024,
+        1024,
+        "disabled"
+      ],
+      "widgets_values_named": {
+        "upscale_method": "lanczos",
+        "width": 1024,
+        "height": 1024,
+        "crop": "disabled"
+      }
+    },
+    {
+      "id": 49,
+      "type": "DWPreprocessor",
+      "title": "3. DWPose 본 추출",
+      "pos": [
+        -800,
+        850
+      ],
+      "size": [
+        310,
+        270
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 111
+        },
+        {
+          "name": "detect_hand",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "detect_hand"
+          }
+        },
+        {
+          "name": "detect_body",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "detect_body"
+          }
+        },
+        {
+          "name": "detect_face",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "detect_face"
+          }
+        },
+        {
+          "name": "resolution",
+          "type": "INT",
+          "link": null,
+          "widget": {
+            "name": "resolution"
+          }
+        },
+        {
+          "name": "bbox_detector",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "bbox_detector"
+          }
+        },
+        {
+          "name": "pose_estimator",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "pose_estimator"
+          }
+        },
+        {
+          "name": "scale_stick_for_xinsr_cn",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "scale_stick_for_xinsr_cn"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": []
+        },
+        {
+          "name": "POSE_KEYPOINT",
+          "type": "POSE_KEYPOINT",
+          "links": [
+            114
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "DWPreprocessor"
+      },
+      "widgets_values": [
+        "enable",
+        "enable",
+        "enable",
+        1024,
+        "yolox_l.onnx",
+        "dw-ll_ucoco_384.onnx",
+        "disable"
+      ],
+      "widgets_values_named": {
+        "detect_hand": "enable",
+        "detect_body": "enable",
+        "detect_face": "enable",
+        "resolution": 1024,
+        "bbox_detector": "yolox_l.onnx",
+        "pose_estimator": "dw-ll_ucoco_384.onnx",
+        "scale_stick_for_xinsr_cn": "disable"
+      }
+    },
+    {
+      "id": 50,
+      "type": "PreviewImage",
+      "title": "편집한 본 미리보기",
+      "pos": [
+        70,
+        850
+      ],
+      "size": [
+        330,
+        370
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 112
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      }
+    },
+    {
+      "id": 51,
+      "type": "ModelPatchLoader",
+      "title": "Anima 포즈 ControlNet 로드",
+      "pos": [
+        -760,
+        440
+      ],
+      "size": [
+        340,
+        100
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "name",
+          "type": "COMBO",
+          "link": null,
+          "widget": {
+            "name": "name"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL_PATCH",
+          "type": "MODEL_PATCH",
+          "links": [
+            107
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ModelPatchLoader"
+      },
+      "widgets_values": [
+        "anima-lllite-pose-1.safetensors"
+      ],
+      "widgets_values_named": {
+        "name": "anima-lllite-pose-1.safetensors"
+      }
+    },
+    {
+      "id": 52,
+      "type": "AnimaLLLiteApply",
+      "title": "5. 본을 Anima 모델에 적용",
+      "pos": [
+        -330,
+        100
+      ],
+      "size": [
+        300,
+        210
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 106
+        },
+        {
+          "name": "model_patch",
+          "type": "MODEL_PATCH",
+          "link": 107
+        },
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 108
+        },
+        {
+          "name": "strength",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "strength"
+          }
+        },
+        {
+          "name": "start_percent",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "start_percent"
+          }
+        },
+        {
+          "name": "end_percent",
+          "type": "FLOAT",
+          "link": null,
+          "widget": {
+            "name": "end_percent"
+          }
+        },
+        {
+          "name": "mask",
+          "type": "MASK",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            109
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "AnimaLLLiteApply"
+      },
+      "widgets_values": [
+        1,
+        0,
+        1
+      ],
+      "widgets_values_named": {
+        "strength": 1,
+        "start_percent": 0,
+        "end_percent": 1
+      }
+    },
+    {
+      "id": 53,
+      "type": "SaveImage",
+      "title": "편집한 본 저장",
+      "pos": [
+        450,
+        850
+      ],
+      "size": [
+        320,
+        370
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 113
+        },
+        {
+          "name": "filename_prefix",
+          "type": "STRING",
+          "link": null,
+          "widget": {
+            "name": "filename_prefix"
+          }
+        }
+      ],
+      "outputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SaveImage"
+      },
+      "widgets_values": [
+        "ControlNet/pose"
+      ],
+      "widgets_values_named": {
+        "filename_prefix": "ControlNet/pose"
+      }
+    },
+    {
+      "id": 54,
+      "type": "Note",
+      "title": "사용 방법",
+      "pos": [
+        -1500,
+        1540
+      ],
+      "size": [
+        560,
+        350
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "Note"
+      },
+      "widgets_values": [
+        "1. 먼저 01_Pose_Only 워크플로를 실행하여 참고 이미지의 본을 추출합니다.\n2. 4. 본 편집기 노드를 우클릭 → Open in Openpose Editor.\n3. 관절점을 움직인 뒤 Send pose to ControlNet으로 반영합니다.\n4. 전체 워크플로에서도 같은 편집을 반영한 뒤 실행합니다. 편집한 JSON을 복사하여 다른 워크플로의 POSE_JSON에 붙여 넣을 수도 있습니다.\n5. 참고 이미지를 바꾸면 Reload reference pose를 누르고 다시 실행합니다.\n6. 캔버스 크기와 EmptyLatentImage 크기를 맞추세요(기본 1024×1024).\n7. 본 적용 강도는 Anima 적용 노드의 strength입니다.\n\n편집한 본은 미리보기와 ControlNet/pose 저장에 반영됩니다."
+      ],
+      "widgets_values_named": {
+        "text": "1. 먼저 01_Pose_Only 워크플로를 실행하여 참고 이미지의 본을 추출합니다.\n2. 4. 본 편집기 노드를 우클릭 → Open in Openpose Editor.\n3. 관절점을 움직인 뒤 Send pose to ControlNet으로 반영합니다.\n4. 전체 워크플로에서도 같은 편집을 반영한 뒤 실행합니다. 편집한 JSON을 복사하여 다른 워크플로의 POSE_JSON에 붙여 넣을 수도 있습니다.\n5. 참고 이미지를 바꾸면 Reload reference pose를 누르고 다시 실행합니다.\n6. 캔버스 크기와 EmptyLatentImage 크기를 맞추세요(기본 1024×1024).\n7. 본 적용 강도는 Anima 적용 노드의 strength입니다.\n\n편집한 본은 미리보기와 ControlNet/pose 저장에 반영됩니다."
+      }
+    },
+    {
+      "id": 56,
+      "type": "OpenposeEditorNode",
+      "title": "4. 본 편집기 (우클릭 → Open in Openpose Editor)",
+      "pos": [
+        -420,
+        850
+      ],
+      "size": [
+        420,
+        650
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "POSE_KEYPOINT",
+          "type": "POSE_KEYPOINT",
+          "link": 114
+        }
+      ],
+      "outputs": [
+        {
+          "name": "POSE_IMAGE",
+          "type": "IMAGE",
+          "links": [
+            112,
+            113,
+            108
+          ]
+        },
+        {
+          "name": "POSE_KEYPOINT",
+          "type": "POSE_KEYPOINT",
+          "links": []
+        },
+        {
+          "name": "POSE_JSON",
+          "type": "STRING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OpenposeEditorNode"
+      },
+      "widgets_values": [
+        true,
+        true,
+        true,
+        1024,
+        4,
+        3,
+        2,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        "poses",
+        "loop extend",
+        99,
+        "[\n    {\n        \"people\": [\n            {\n                \"pose_keypoints_2d\": [\n                    266.605968122681,\n                    216.5864056597153,\n                    1.0,\n                    275.1566938509543,\n                    294.9680581688881,\n                    1.0,\n                    189.64943656822038,\n                    300.66854198773694,\n                    1.0,\n                    161.1470174739759,\n                    408.9777345458667,\n                    1.0,\n                    115.5431469231844,\n                    457.43184700608253,\n                    1.0,\n                    360.6639511336882,\n                    289.26757435003924,\n                    1.0,\n                    411.96830550332857,\n                    420.3787021835644,\n                    1.0,\n                    397.7170959562063,\n                    534.3883785605431,\n                    1.0,\n                    203.90064611534274,\n                    537.2386204699676,\n                    1.0,\n                    201.0504042059183,\n                    722.5043445825577,\n                    1.0,\n                    218.1518556624651,\n                    906.3449477404356,\n                    1.0,\n                    315.06008058289683,\n                    542.9391042888165,\n                    1.0,\n                    337.8620158582926,\n                    733.9053122202554,\n                    1.0,\n                    379.19052354494727,\n                    922.02127824227,\n                    1.0,\n                    248.07939571142197,\n                    200.91007515788078,\n                    1.0,\n                    285.1325405339401,\n                    198.05983324845636,\n                    1.0,\n                    223.85233948131406,\n                    202.33519611259305,\n                    1.0,\n                    309.35959676404786,\n                    198.05983324845636,\n                    1.0\n                ],\n                \"face_keypoints_2d\": [\n                    229.5528233001629,\n                    200.91007515788078,\n                    1.0,\n                    229.5528233001629,\n                    209.46080088615417,\n                    1.0,\n                    230.97794425487518,\n                    220.861768523852,\n                    1.0,\n                    233.82818616429972,\n                    229.41249425212538,\n                    1.0,\n                    238.10354902843642,\n                    237.96321998039878,\n                    1.0,\n                    243.80403284728527,\n                    246.51394570867217,\n                    1.0,\n                    252.35475857555866,\n                    252.21442952752113,\n                    1.0,\n                    259.4803633491199,\n                    256.48979239165783,\n                    1.0,\n                    269.45621003210545,\n                    257.9149133463701,\n                    1.0,\n                    280.85717766980326,\n                    255.06467143694556,\n                    1.0,\n                    287.9827824433645,\n                    250.78930857280886,\n                    1.0,\n                    295.1083872169256,\n                    243.66370379924774,\n                    1.0,\n                    300.8088710357746,\n                    235.11297807097435,\n                    1.0,\n                    303.659112945199,\n                    226.56225234270096,\n                    1.0,\n                    306.50935485462344,\n                    216.5864056597153,\n                    1.0,\n                    306.50935485462344,\n                    206.61055897672975,\n                    1.0,\n                    306.50935485462344,\n                    196.6347122937441,\n                    1.0,\n                    236.67842807372415,\n                    196.6347122937441,\n                    1.0,\n                    242.378911892573,\n                    195.20959133903182,\n                    1.0,\n                    248.07939571142197,\n                    193.78447038431966,\n                    1.0,\n                    253.77987953027082,\n                    193.78447038431966,\n                    1.0,\n                    259.4803633491199,\n                    195.20959133903182,\n                    1.0,\n                    275.1566938509544,\n                    193.78447038431966,\n                    1.0,\n                    280.85717766980326,\n                    192.3593494296074,\n                    1.0,\n                    286.55766148865223,\n                    190.93422847489512,\n                    1.0,\n                    292.2581453075012,\n                    190.93422847489512,\n                    1.0,\n                    297.95862912635016,\n                    192.3593494296074,\n                    1.0,\n                    268.0310890773932,\n                    200.91007515788078,\n                    1.0,\n                    268.0310890773932,\n                    208.0356799314419,\n                    1.0,\n                    268.0310890773932,\n                    213.73616375029087,\n                    1.0,\n                    268.0310890773932,\n                    219.43664756913984,\n                    1.0,\n                    259.4803633491199,\n                    225.1371313879887,\n                    1.0,\n                    263.7557262132566,\n                    225.1371313879887,\n                    1.0,\n                    268.0310890773932,\n                    225.1371313879887,\n                    1.0,\n                    272.30645194153,\n                    225.1371313879887,\n                    1.0,\n                    276.58181480566657,\n                    223.71201043327653,\n                    1.0,\n                    242.378911892573,\n                    203.7603170673052,\n                    1.0,\n                    248.07939571142197,\n                    200.91007515788078,\n                    1.0,\n                    252.35475857555866,\n                    200.91007515788078,\n                    1.0,\n                    258.0552423944075,\n                    202.33519611259305,\n                    1.0,\n                    252.35475857555866,\n                    203.7603170673052,\n                    1.0,\n                    248.07939571142197,\n                    205.18543802201748,\n                    1.0,\n                    278.00693576037884,\n                    200.91007515788078,\n                    1.0,\n                    282.28229862451553,\n                    199.4849542031685,\n                    1.0,\n                    287.9827824433645,\n                    199.4849542031685,\n                    1.0,\n                    293.68326626221335,\n                    200.91007515788078,\n                    1.0,\n                    287.9827824433645,\n                    202.33519611259305,\n                    1.0,\n                    282.28229862451553,\n                    202.33519611259305,\n                    1.0,\n                    252.35475857555866,\n                    233.68785711626208,\n                    1.0,\n                    258.0552423944075,\n                    232.26273616154992,\n                    1.0,\n                    265.18084716796875,\n                    230.83761520683765,\n                    1.0,\n                    268.0310890773932,\n                    230.83761520683765,\n                    1.0,\n                    270.8813309868176,\n                    230.83761520683765,\n                    1.0,\n                    278.00693576037884,\n                    230.83761520683765,\n                    1.0,\n                    283.7074195792277,\n                    232.26273616154992,\n                    1.0,\n                    279.4320567150911,\n                    236.53809902568662,\n                    1.0,\n                    273.73157289624214,\n                    239.38834093511105,\n                    1.0,\n                    268.0310890773932,\n                    239.38834093511105,\n                    1.0,\n                    262.3306052585443,\n                    239.38834093511105,\n                    1.0,\n                    256.63012143969536,\n                    236.53809902568662,\n                    1.0,\n                    253.77987953027082,\n                    233.68785711626208,\n                    1.0,\n                    260.90548430383205,\n                    233.68785711626208,\n                    1.0,\n                    268.0310890773932,\n                    233.68785711626208,\n                    1.0,\n                    275.1566938509544,\n                    233.68785711626208,\n                    1.0,\n                    282.28229862451553,\n                    232.26273616154992,\n                    1.0,\n                    275.1566938509544,\n                    235.11297807097435,\n                    1.0,\n                    268.0310890773932,\n                    235.11297807097435,\n                    1.0,\n                    260.90548430383205,\n                    235.11297807097435,\n                    1.0,\n                    248.07939571142197,\n                    200.91007515788078,\n                    1.0,\n                    285.1325405339401,\n                    198.05983324845636,\n                    1.0\n                ],\n                \"hand_left_keypoints_2d\": [\n                    396.29197500149405,\n                    544.3642252435286,\n                    1.0,\n                    377.7654025902351,\n                    552.9149509718022,\n                    1.0,\n                    359.23883017897606,\n                    562.8907976547875,\n                    1.0,\n                    352.11322540541494,\n                    579.9922491113343,\n                    1.0,\n                    347.8378625412781,\n                    594.2434586584568,\n                    1.0,\n                    376.34028163552284,\n                    578.5671281566224,\n                    1.0,\n                    367.78955590724945,\n                    594.2434586584568,\n                    1.0,\n                    362.0890720884006,\n                    597.0937005678811,\n                    1.0,\n                    359.23883017897606,\n                    597.0937005678811,\n                    1.0,\n                    387.7412492732208,\n                    585.6927329301834,\n                    1.0,\n                    376.34028163552284,\n                    601.3690634320178,\n                    1.0,\n                    369.2146768619617,\n                    599.9439424773059,\n                    1.0,\n                    367.78955590724945,\n                    595.6685796131692,\n                    1.0,\n                    396.29197500149405,\n                    589.9680957943201,\n                    1.0,\n                    386.3161283185084,\n                    604.2193053414426,\n                    1.0,\n                    379.19052354494727,\n                    601.3690634320178,\n                    1.0,\n                    377.7654025902351,\n                    598.5188215225935,\n                    1.0,\n                    404.84270072976744,\n                    592.8183377037444,\n                    1.0,\n                    396.29197500149405,\n                    604.2193053414426,\n                    1.0,\n                    390.5914911826452,\n                    602.7941843867302,\n                    1.0,\n                    387.7412492732208,\n                    599.9439424773059,\n                    1.0\n                ],\n                \"hand_right_keypoints_2d\": [\n                    106.992421194911,\n                    467.4076936890681,\n                    1.0,\n                    114.11802596847212,\n                    471.6830565532048,\n                    1.0,\n                    119.81850978732109,\n                    475.9584194173415,\n                    1.0,\n                    115.5431469231844,\n                    485.93426610032725,\n                    1.0,\n                    108.41754214962327,\n                    497.33523373802495,\n                    1.0,\n                    89.89096973836422,\n                    471.6830565532048,\n                    1.0,\n                    89.89096973836422,\n                    488.78450800975156,\n                    1.0,\n                    98.44169546663761,\n                    500.1854756474495,\n                    1.0,\n                    106.992421194911,\n                    505.88595946629835,\n                    1.0,\n                    79.91512305537861,\n                    478.808661326766,\n                    1.0,\n                    82.7653649648031,\n                    498.76035469273734,\n                    1.0,\n                    92.7412116477887,\n                    507.31108042101073,\n                    1.0,\n                    104.14217928548646,\n                    510.16132233043504,\n                    1.0,\n                    74.21463923652965,\n                    485.93426610032725,\n                    1.0,\n                    77.06488114595413,\n                    503.03571755687403,\n                    1.0,\n                    88.46584878365195,\n                    510.16132233043504,\n                    1.0,\n                    97.0165745119254,\n                    511.5864432851474,\n                    1.0,\n                    72.78951828181744,\n                    493.05987087388826,\n                    1.0,\n                    74.21463923652965,\n                    505.88595946629835,\n                    1.0,\n                    82.7653649648031,\n                    510.16132233043504,\n                    1.0,\n                    88.46584878365195,\n                    511.5864432851474,\n                    1.0\n                ]\n            },\n            {\n                \"pose_keypoints_2d\": [\n                    751.1552038888135,\n                    173.66350081562996,\n                    1.0,\n                    808.0443968971572,\n                    266.48271046082186,\n                    1.0,\n                    731.6931115438542,\n                    275.465214620034,\n                    1.0,\n                    677.7980865885816,\n                    404.2144409020741,\n                    1.0,\n                    638.8739018986623,\n                    512.0044908126195,\n                    1.0,\n                    884.3956822504601,\n                    257.50020630160975,\n                    1.0,\n                    944.2790433118741,\n                    399.72318882246805,\n                    1.0,\n                    941.2848752588034,\n                    529.9694991310439,\n                    1.0,\n                    721.2135233581066,\n                    523.9811630249023,\n                    1.0,\n                    709.2368511458237,\n                    723.0933385541043,\n                    1.0,\n                    727.201859464248,\n                    908.7317578444877,\n                    1.0,\n                    833.494825348258,\n                    528.4724151045084,\n                    1.0,\n                    858.9452537993589,\n                    738.0641788194575,\n                    1.0,\n                    881.4015141973891,\n                    935.679270322124,\n                    1.0,\n                    739.1785316765308,\n                    158.6926605502764,\n                    1.0,\n                    767.6231281807025,\n                    154.20140847067034,\n                    1.0,\n                    733.1901955703895,\n                    166.17808068295324,\n                    1.0,\n                    815.5298170298338,\n                    152.70432444413507,\n                    1.0\n                ],\n                \"face_keypoints_2d\": [\n                    731.6931115438542,\n                    161.68682860334718,\n                    1.0,\n                    733.1901955703895,\n                    170.6693327625593,\n                    1.0,\n                    734.6872795969248,\n                    179.6518369217714,\n                    1.0,\n                    739.1785316765308,\n                    190.1314251075188,\n                    1.0,\n                    742.1726997296016,\n                    197.61684524019563,\n                    1.0,\n                    748.161035835743,\n                    206.59934939940774,\n                    1.0,\n                    755.6464559684198,\n                    214.08476953208447,\n                    1.0,\n                    763.1318761010964,\n                    217.07893758515513,\n                    1.0,\n                    772.1143802603087,\n                    214.08476953208447,\n                    1.0,\n                    782.5939684460561,\n                    209.5935174524784,\n                    1.0,\n                    790.0793885787327,\n                    203.60518134633696,\n                    1.0,\n                    796.0677246848743,\n                    197.61684524019563,\n                    1.0,\n                    802.0560607910156,\n                    188.63434108098352,\n                    1.0,\n                    805.0502288440862,\n                    179.6518369217714,\n                    1.0,\n                    805.0502288440862,\n                    169.1722487360239,\n                    1.0,\n                    805.0502288440862,\n                    160.1897445768118,\n                    1.0,\n                    806.5473128706217,\n                    149.7101563910643,\n                    1.0,\n                    733.1901955703895,\n                    155.69849249720573,\n                    1.0,\n                    736.1843636234601,\n                    154.20140847067034,\n                    1.0,\n                    739.1785316765308,\n                    154.20140847067034,\n                    1.0,\n                    742.1726997296016,\n                    152.70432444413507,\n                    1.0,\n                    745.1668677826724,\n                    152.70432444413507,\n                    1.0,\n                    755.6464559684198,\n                    149.7101563910643,\n                    1.0,\n                    760.1377080480258,\n                    148.213072364529,\n                    1.0,\n                    766.1260441541672,\n                    146.71598833799362,\n                    1.0,\n                    772.1143802603087,\n                    145.21890431145823,\n                    1.0,\n                    778.1027163664498,\n                    146.71598833799362,\n                    1.0,\n                    751.1552038888135,\n                    158.6926605502764,\n                    1.0,\n                    749.6581198622782,\n                    164.68099665641785,\n                    1.0,\n                    748.161035835743,\n                    170.6693327625593,\n                    1.0,\n                    748.161035835743,\n                    176.65766886870063,\n                    1.0,\n                    745.1668677826724,\n                    182.64600497484207,\n                    1.0,\n                    748.161035835743,\n                    184.14308900137746,\n                    1.0,\n                    752.652287915349,\n                    182.64600497484207,\n                    1.0,\n                    755.6464559684198,\n                    182.64600497484207,\n                    1.0,\n                    760.1377080480258,\n                    181.14892094830668,\n                    1.0,\n                    736.1843636234601,\n                    163.18391262988246,\n                    1.0,\n                    739.1785316765308,\n                    160.1897445768118,\n                    1.0,\n                    742.1726997296016,\n                    158.6926605502764,\n                    1.0,\n                    745.1668677826724,\n                    160.1897445768118,\n                    1.0,\n                    742.1726997296016,\n                    161.68682860334718,\n                    1.0,\n                    739.1785316765308,\n                    163.18391262988246,\n                    1.0,\n                    760.1377080480258,\n                    157.19557652374112,\n                    1.0,\n                    764.6289601276317,\n                    154.20140847067034,\n                    1.0,\n                    769.120212207238,\n                    154.20140847067034,\n                    1.0,\n                    773.611464286844,\n                    154.20140847067034,\n                    1.0,\n                    769.120212207238,\n                    155.69849249720573,\n                    1.0,\n                    764.6289601276317,\n                    157.19557652374112,\n                    1.0,\n                    746.6639518092077,\n                    196.11976121366024,\n                    1.0,\n                    748.161035835743,\n                    193.12559316058957,\n                    1.0,\n                    752.652287915349,\n                    190.1314251075188,\n                    1.0,\n                    754.1493719418843,\n                    190.1314251075188,\n                    1.0,\n                    755.6464559684198,\n                    190.1314251075188,\n                    1.0,\n                    763.1318761010964,\n                    190.1314251075188,\n                    1.0,\n                    772.1143802603087,\n                    190.1314251075188,\n                    1.0,\n                    767.6231281807025,\n                    194.62267718712485,\n                    1.0,\n                    761.6347920745611,\n                    197.61684524019563,\n                    1.0,\n                    757.1435399949551,\n                    199.1139292667309,\n                    1.0,\n                    752.652287915349,\n                    199.1139292667309,\n                    1.0,\n                    749.6581198622782,\n                    197.61684524019563,\n                    1.0,\n                    748.161035835743,\n                    196.11976121366024,\n                    1.0,\n                    751.1552038888135,\n                    194.62267718712485,\n                    1.0,\n                    755.6464559684198,\n                    193.12559316058957,\n                    1.0,\n                    763.1318761010964,\n                    191.62850913405418,\n                    1.0,\n                    770.6172962337732,\n                    191.62850913405418,\n                    1.0,\n                    763.1318761010964,\n                    193.12559316058957,\n                    1.0,\n                    755.6464559684198,\n                    194.62267718712485,\n                    1.0,\n                    752.652287915349,\n                    194.62267718712485,\n                    1.0,\n                    739.1785316765308,\n                    158.6926605502764,\n                    1.0,\n                    767.6231281807025,\n                    154.20140847067034,\n                    1.0\n                ],\n                \"hand_left_keypoints_2d\": [\n                    939.7877912322679,\n                    541.9461713433266,\n                    1.0,\n                    920.3256988873086,\n                    552.4257595290742,\n                    1.0,\n                    899.3665225158134,\n                    564.4024317413568,\n                    1.0,\n                    891.8811023831367,\n                    582.3674400597811,\n                    1.0,\n                    888.886934330066,\n                    595.8411962985992,\n                    1.0,\n                    917.3315308342378,\n                    580.8703560332456,\n                    1.0,\n                    909.846110701561,\n                    600.3324483782053,\n                    1.0,\n                    902.3606905688841,\n                    606.3207844843469,\n                    1.0,\n                    896.3723544627428,\n                    607.8178685108819,\n                    1.0,\n                    932.3023710995913,\n                    586.8586921393871,\n                    1.0,\n                    920.3256988873086,\n                    607.8178685108819,\n                    1.0,\n                    909.846110701561,\n                    609.3149525374174,\n                    1.0,\n                    902.3606905688841,\n                    606.3207844843469,\n                    1.0,\n                    942.7819592853386,\n                    591.3499442189932,\n                    1.0,\n                    930.805287073056,\n                    609.3149525374174,\n                    1.0,\n                    920.3256988873086,\n                    609.3149525374174,\n                    1.0,\n                    914.337362781167,\n                    606.3207844843469,\n                    1.0,\n                    951.764463444551,\n                    592.8470282455287,\n                    1.0,\n                    941.2848752588034,\n                    606.3207844843469,\n                    1.0,\n                    932.3023710995913,\n                    606.3207844843469,\n                    1.0,\n                    926.3140349934497,\n                    604.8237004578114,\n                    1.0\n                ],\n                \"hand_right_keypoints_2d\": [\n                    632.8855657925208,\n                    528.4724151045084,\n                    1.0,\n                    634.3826498190563,\n                    540.4490873167911,\n                    1.0,\n                    637.376817872127,\n                    550.9286755025387,\n                    1.0,\n                    635.8797338455915,\n                    565.8995157678924,\n                    1.0,\n                    637.376817872127,\n                    576.3791039536395,\n                    1.0,\n                    611.926389421026,\n                    562.9053477148213,\n                    1.0,\n                    617.9147255271673,\n                    579.3732720067105,\n                    1.0,\n                    631.3884817659855,\n                    582.3674400597811,\n                    1.0,\n                    643.3651539782682,\n                    583.8645240863166,\n                    1.0,\n                    611.926389421026,\n                    567.3965997944274,\n                    1.0,\n                    619.4118095537026,\n                    582.3674400597811,\n                    1.0,\n                    634.3826498190563,\n                    583.8645240863166,\n                    1.0,\n                    644.8622380048037,\n                    579.3732720067105,\n                    1.0,\n                    613.4234734475613,\n                    568.8936838209629,\n                    1.0,\n                    623.9030616333087,\n                    582.3674400597811,\n                    1.0,\n                    635.8797338455915,\n                    582.3674400597811,\n                    1.0,\n                    644.8622380048037,\n                    579.3732720067105,\n                    1.0,\n                    617.9147255271673,\n                    570.3907678474984,\n                    1.0,\n                    626.8972296863794,\n                    579.3732720067105,\n                    1.0,\n                    635.8797338455915,\n                    580.8703560332456,\n                    1.0,\n                    641.8680699517329,\n                    577.876187980175,\n                    1.0\n                ]\n            }\n        ],\n        \"canvas_height\": 1024,\n        \"canvas_width\": 1024\n    }\n]"
+      ],
+      "widgets_values_named": {
+        "show_body": true,
+        "show_face": true,
+        "show_hands": true,
+        "resolution_x": 1024,
+        "pose_marker_size": 4,
+        "face_marker_size": 3,
+        "hand_marker_size": 2,
+        "hands_scale": 1.0,
+        "body_scale": 1.0,
+        "head_scale": 1.0,
+        "overall_scale": 1.0,
+        "scalelist_behavior": "poses",
+        "match_scalelist_method": "loop extend",
+        "only_scale_pose_index": 99,
+        "POSE_JSON": "[\n    {\n        \"people\": [\n            {\n                \"pose_keypoints_2d\": [\n                    266.605968122681,\n                    216.5864056597153,\n                    1.0,\n                    275.1566938509543,\n                    294.9680581688881,\n                    1.0,\n                    189.64943656822038,\n                    300.66854198773694,\n                    1.0,\n                    161.1470174739759,\n                    408.9777345458667,\n                    1.0,\n                    115.5431469231844,\n                    457.43184700608253,\n                    1.0,\n                    360.6639511336882,\n                    289.26757435003924,\n                    1.0,\n                    411.96830550332857,\n                    420.3787021835644,\n                    1.0,\n                    397.7170959562063,\n                    534.3883785605431,\n                    1.0,\n                    203.90064611534274,\n                    537.2386204699676,\n                    1.0,\n                    201.0504042059183,\n                    722.5043445825577,\n                    1.0,\n                    218.1518556624651,\n                    906.3449477404356,\n                    1.0,\n                    315.06008058289683,\n                    542.9391042888165,\n                    1.0,\n                    337.8620158582926,\n                    733.9053122202554,\n                    1.0,\n                    379.19052354494727,\n                    922.02127824227,\n                    1.0,\n                    248.07939571142197,\n                    200.91007515788078,\n                    1.0,\n                    285.1325405339401,\n                    198.05983324845636,\n                    1.0,\n                    223.85233948131406,\n                    202.33519611259305,\n                    1.0,\n                    309.35959676404786,\n                    198.05983324845636,\n                    1.0\n                ],\n                \"face_keypoints_2d\": [\n                    229.5528233001629,\n                    200.91007515788078,\n                    1.0,\n                    229.5528233001629,\n                    209.46080088615417,\n                    1.0,\n                    230.97794425487518,\n                    220.861768523852,\n                    1.0,\n                    233.82818616429972,\n                    229.41249425212538,\n                    1.0,\n                    238.10354902843642,\n                    237.96321998039878,\n                    1.0,\n                    243.80403284728527,\n                    246.51394570867217,\n                    1.0,\n                    252.35475857555866,\n                    252.21442952752113,\n                    1.0,\n                    259.4803633491199,\n                    256.48979239165783,\n                    1.0,\n                    269.45621003210545,\n                    257.9149133463701,\n                    1.0,\n                    280.85717766980326,\n                    255.06467143694556,\n                    1.0,\n                    287.9827824433645,\n                    250.78930857280886,\n                    1.0,\n                    295.1083872169256,\n                    243.66370379924774,\n                    1.0,\n                    300.8088710357746,\n                    235.11297807097435,\n                    1.0,\n                    303.659112945199,\n                    226.56225234270096,\n                    1.0,\n                    306.50935485462344,\n                    216.5864056597153,\n                    1.0,\n                    306.50935485462344,\n                    206.61055897672975,\n                    1.0,\n                    306.50935485462344,\n                    196.6347122937441,\n                    1.0,\n                    236.67842807372415,\n                    196.6347122937441,\n                    1.0,\n                    242.378911892573,\n                    195.20959133903182,\n                    1.0,\n                    248.07939571142197,\n                    193.78447038431966,\n                    1.0,\n                    253.77987953027082,\n                    193.78447038431966,\n                    1.0,\n                    259.4803633491199,\n                    195.20959133903182,\n                    1.0,\n                    275.1566938509544,\n                    193.78447038431966,\n                    1.0,\n                    280.85717766980326,\n                    192.3593494296074,\n                    1.0,\n                    286.55766148865223,\n                    190.93422847489512,\n                    1.0,\n                    292.2581453075012,\n                    190.93422847489512,\n                    1.0,\n                    297.95862912635016,\n                    192.3593494296074,\n                    1.0,\n                    268.0310890773932,\n                    200.91007515788078,\n                    1.0,\n                    268.0310890773932,\n                    208.0356799314419,\n                    1.0,\n                    268.0310890773932,\n                    213.73616375029087,\n                    1.0,\n                    268.0310890773932,\n                    219.43664756913984,\n                    1.0,\n                    259.4803633491199,\n                    225.1371313879887,\n                    1.0,\n                    263.7557262132566,\n                    225.1371313879887,\n                    1.0,\n                    268.0310890773932,\n                    225.1371313879887,\n                    1.0,\n                    272.30645194153,\n                    225.1371313879887,\n                    1.0,\n                    276.58181480566657,\n                    223.71201043327653,\n                    1.0,\n                    242.378911892573,\n                    203.7603170673052,\n                    1.0,\n                    248.07939571142197,\n                    200.91007515788078,\n                    1.0,\n                    252.35475857555866,\n                    200.91007515788078,\n                    1.0,\n                    258.0552423944075,\n                    202.33519611259305,\n                    1.0,\n                    252.35475857555866,\n                    203.7603170673052,\n                    1.0,\n                    248.07939571142197,\n                    205.18543802201748,\n                    1.0,\n                    278.00693576037884,\n                    200.91007515788078,\n                    1.0,\n                    282.28229862451553,\n                    199.4849542031685,\n                    1.0,\n                    287.9827824433645,\n                    199.4849542031685,\n                    1.0,\n                    293.68326626221335,\n                    200.91007515788078,\n                    1.0,\n                    287.9827824433645,\n                    202.33519611259305,\n                    1.0,\n                    282.28229862451553,\n                    202.33519611259305,\n                    1.0,\n                    252.35475857555866,\n                    233.68785711626208,\n                    1.0,\n                    258.0552423944075,\n                    232.26273616154992,\n                    1.0,\n                    265.18084716796875,\n                    230.83761520683765,\n                    1.0,\n                    268.0310890773932,\n                    230.83761520683765,\n                    1.0,\n                    270.8813309868176,\n                    230.83761520683765,\n                    1.0,\n                    278.00693576037884,\n                    230.83761520683765,\n                    1.0,\n                    283.7074195792277,\n                    232.26273616154992,\n                    1.0,\n                    279.4320567150911,\n                    236.53809902568662,\n                    1.0,\n                    273.73157289624214,\n                    239.38834093511105,\n                    1.0,\n                    268.0310890773932,\n                    239.38834093511105,\n                    1.0,\n                    262.3306052585443,\n                    239.38834093511105,\n                    1.0,\n                    256.63012143969536,\n                    236.53809902568662,\n                    1.0,\n                    253.77987953027082,\n                    233.68785711626208,\n                    1.0,\n                    260.90548430383205,\n                    233.68785711626208,\n                    1.0,\n                    268.0310890773932,\n                    233.68785711626208,\n                    1.0,\n                    275.1566938509544,\n                    233.68785711626208,\n                    1.0,\n                    282.28229862451553,\n                    232.26273616154992,\n                    1.0,\n                    275.1566938509544,\n                    235.11297807097435,\n                    1.0,\n                    268.0310890773932,\n                    235.11297807097435,\n                    1.0,\n                    260.90548430383205,\n                    235.11297807097435,\n                    1.0,\n                    248.07939571142197,\n                    200.91007515788078,\n                    1.0,\n                    285.1325405339401,\n                    198.05983324845636,\n                    1.0\n                ],\n                \"hand_left_keypoints_2d\": [\n                    396.29197500149405,\n                    544.3642252435286,\n                    1.0,\n                    377.7654025902351,\n                    552.9149509718022,\n                    1.0,\n                    359.23883017897606,\n                    562.8907976547875,\n                    1.0,\n                    352.11322540541494,\n                    579.9922491113343,\n                    1.0,\n                    347.8378625412781,\n                    594.2434586584568,\n                    1.0,\n                    376.34028163552284,\n                    578.5671281566224,\n                    1.0,\n                    367.78955590724945,\n                    594.2434586584568,\n                    1.0,\n                    362.0890720884006,\n                    597.0937005678811,\n                    1.0,\n                    359.23883017897606,\n                    597.0937005678811,\n                    1.0,\n                    387.7412492732208,\n                    585.6927329301834,\n                    1.0,\n                    376.34028163552284,\n                    601.3690634320178,\n                    1.0,\n                    369.2146768619617,\n                    599.9439424773059,\n                    1.0,\n                    367.78955590724945,\n                    595.6685796131692,\n                    1.0,\n                    396.29197500149405,\n                    589.9680957943201,\n                    1.0,\n                    386.3161283185084,\n                    604.2193053414426,\n                    1.0,\n                    379.19052354494727,\n                    601.3690634320178,\n                    1.0,\n                    377.7654025902351,\n                    598.5188215225935,\n                    1.0,\n                    404.84270072976744,\n                    592.8183377037444,\n                    1.0,\n                    396.29197500149405,\n                    604.2193053414426,\n                    1.0,\n                    390.5914911826452,\n                    602.7941843867302,\n                    1.0,\n                    387.7412492732208,\n                    599.9439424773059,\n                    1.0\n                ],\n                \"hand_right_keypoints_2d\": [\n                    106.992421194911,\n                    467.4076936890681,\n                    1.0,\n                    114.11802596847212,\n                    471.6830565532048,\n                    1.0,\n                    119.81850978732109,\n                    475.9584194173415,\n                    1.0,\n                    115.5431469231844,\n                    485.93426610032725,\n                    1.0,\n                    108.41754214962327,\n                    497.33523373802495,\n                    1.0,\n                    89.89096973836422,\n                    471.6830565532048,\n                    1.0,\n                    89.89096973836422,\n                    488.78450800975156,\n                    1.0,\n                    98.44169546663761,\n                    500.1854756474495,\n                    1.0,\n                    106.992421194911,\n                    505.88595946629835,\n                    1.0,\n                    79.91512305537861,\n                    478.808661326766,\n                    1.0,\n                    82.7653649648031,\n                    498.76035469273734,\n                    1.0,\n                    92.7412116477887,\n                    507.31108042101073,\n                    1.0,\n                    104.14217928548646,\n                    510.16132233043504,\n                    1.0,\n                    74.21463923652965,\n                    485.93426610032725,\n                    1.0,\n                    77.06488114595413,\n                    503.03571755687403,\n                    1.0,\n                    88.46584878365195,\n                    510.16132233043504,\n                    1.0,\n                    97.0165745119254,\n                    511.5864432851474,\n                    1.0,\n                    72.78951828181744,\n                    493.05987087388826,\n                    1.0,\n                    74.21463923652965,\n                    505.88595946629835,\n                    1.0,\n                    82.7653649648031,\n                    510.16132233043504,\n                    1.0,\n                    88.46584878365195,\n                    511.5864432851474,\n                    1.0\n                ]\n            },\n            {\n                \"pose_keypoints_2d\": [\n                    751.1552038888135,\n                    173.66350081562996,\n                    1.0,\n                    808.0443968971572,\n                    266.48271046082186,\n                    1.0,\n                    731.6931115438542,\n                    275.465214620034,\n                    1.0,\n                    677.7980865885816,\n                    404.2144409020741,\n                    1.0,\n                    638.8739018986623,\n                    512.0044908126195,\n                    1.0,\n                    884.3956822504601,\n                    257.50020630160975,\n                    1.0,\n                    944.2790433118741,\n                    399.72318882246805,\n                    1.0,\n                    941.2848752588034,\n                    529.9694991310439,\n                    1.0,\n                    721.2135233581066,\n                    523.9811630249023,\n                    1.0,\n                    709.2368511458237,\n                    723.0933385541043,\n                    1.0,\n                    727.201859464248,\n                    908.7317578444877,\n                    1.0,\n                    833.494825348258,\n                    528.4724151045084,\n                    1.0,\n                    858.9452537993589,\n                    738.0641788194575,\n                    1.0,\n                    881.4015141973891,\n                    935.679270322124,\n                    1.0,\n                    739.1785316765308,\n                    158.6926605502764,\n                    1.0,\n                    767.6231281807025,\n                    154.20140847067034,\n                    1.0,\n                    733.1901955703895,\n                    166.17808068295324,\n                    1.0,\n                    815.5298170298338,\n                    152.70432444413507,\n                    1.0\n                ],\n                \"face_keypoints_2d\": [\n                    731.6931115438542,\n                    161.68682860334718,\n                    1.0,\n                    733.1901955703895,\n                    170.6693327625593,\n                    1.0,\n                    734.6872795969248,\n                    179.6518369217714,\n                    1.0,\n                    739.1785316765308,\n                    190.1314251075188,\n                    1.0,\n                    742.1726997296016,\n                    197.61684524019563,\n                    1.0,\n                    748.161035835743,\n                    206.59934939940774,\n                    1.0,\n                    755.6464559684198,\n                    214.08476953208447,\n                    1.0,\n                    763.1318761010964,\n                    217.07893758515513,\n                    1.0,\n                    772.1143802603087,\n                    214.08476953208447,\n                    1.0,\n                    782.5939684460561,\n                    209.5935174524784,\n                    1.0,\n                    790.0793885787327,\n                    203.60518134633696,\n                    1.0,\n                    796.0677246848743,\n                    197.61684524019563,\n                    1.0,\n                    802.0560607910156,\n                    188.63434108098352,\n                    1.0,\n                    805.0502288440862,\n                    179.6518369217714,\n                    1.0,\n                    805.0502288440862,\n                    169.1722487360239,\n                    1.0,\n                    805.0502288440862,\n                    160.1897445768118,\n                    1.0,\n                    806.5473128706217,\n                    149.7101563910643,\n                    1.0,\n                    733.1901955703895,\n                    155.69849249720573,\n                    1.0,\n                    736.1843636234601,\n                    154.20140847067034,\n                    1.0,\n                    739.1785316765308,\n                    154.20140847067034,\n                    1.0,\n                    742.1726997296016,\n                    152.70432444413507,\n                    1.0,\n                    745.1668677826724,\n                    152.70432444413507,\n                    1.0,\n                    755.6464559684198,\n                    149.7101563910643,\n                    1.0,\n                    760.1377080480258,\n                    148.213072364529,\n                    1.0,\n                    766.1260441541672,\n                    146.71598833799362,\n                    1.0,\n                    772.1143802603087,\n                    145.21890431145823,\n                    1.0,\n                    778.1027163664498,\n                    146.71598833799362,\n                    1.0,\n                    751.1552038888135,\n                    158.6926605502764,\n                    1.0,\n                    749.6581198622782,\n                    164.68099665641785,\n                    1.0,\n                    748.161035835743,\n                    170.6693327625593,\n                    1.0,\n                    748.161035835743,\n                    176.65766886870063,\n                    1.0,\n                    745.1668677826724,\n                    182.64600497484207,\n                    1.0,\n                    748.161035835743,\n                    184.14308900137746,\n                    1.0,\n                    752.652287915349,\n                    182.64600497484207,\n                    1.0,\n                    755.6464559684198,\n                    182.64600497484207,\n                    1.0,\n                    760.1377080480258,\n                    181.14892094830668,\n                    1.0,\n                    736.1843636234601,\n                    163.18391262988246,\n                    1.0,\n                    739.1785316765308,\n                    160.1897445768118,\n                    1.0,\n                    742.1726997296016,\n                    158.6926605502764,\n                    1.0,\n                    745.1668677826724,\n                    160.1897445768118,\n                    1.0,\n                    742.1726997296016,\n                    161.68682860334718,\n                    1.0,\n                    739.1785316765308,\n                    163.18391262988246,\n                    1.0,\n                    760.1377080480258,\n                    157.19557652374112,\n                    1.0,\n                    764.6289601276317,\n                    154.20140847067034,\n                    1.0,\n                    769.120212207238,\n                    154.20140847067034,\n                    1.0,\n                    773.611464286844,\n                    154.20140847067034,\n                    1.0,\n                    769.120212207238,\n                    155.69849249720573,\n                    1.0,\n                    764.6289601276317,\n                    157.19557652374112,\n                    1.0,\n                    746.6639518092077,\n                    196.11976121366024,\n                    1.0,\n                    748.161035835743,\n                    193.12559316058957,\n                    1.0,\n                    752.652287915349,\n                    190.1314251075188,\n                    1.0,\n                    754.1493719418843,\n                    190.1314251075188,\n                    1.0,\n                    755.6464559684198,\n                    190.1314251075188,\n                    1.0,\n                    763.1318761010964,\n                    190.1314251075188,\n                    1.0,\n                    772.1143802603087,\n                    190.1314251075188,\n                    1.0,\n                    767.6231281807025,\n                    194.62267718712485,\n                    1.0,\n                    761.6347920745611,\n                    197.61684524019563,\n                    1.0,\n                    757.1435399949551,\n                    199.1139292667309,\n                    1.0,\n                    752.652287915349,\n                    199.1139292667309,\n                    1.0,\n                    749.6581198622782,\n                    197.61684524019563,\n                    1.0,\n                    748.161035835743,\n                    196.11976121366024,\n                    1.0,\n                    751.1552038888135,\n                    194.62267718712485,\n                    1.0,\n                    755.6464559684198,\n                    193.12559316058957,\n                    1.0,\n                    763.1318761010964,\n                    191.62850913405418,\n                    1.0,\n                    770.6172962337732,\n                    191.62850913405418,\n                    1.0,\n                    763.1318761010964,\n                    193.12559316058957,\n                    1.0,\n                    755.6464559684198,\n                    194.62267718712485,\n                    1.0,\n                    752.652287915349,\n                    194.62267718712485,\n                    1.0,\n                    739.1785316765308,\n                    158.6926605502764,\n                    1.0,\n                    767.6231281807025,\n                    154.20140847067034,\n                    1.0\n                ],\n                \"hand_left_keypoints_2d\": [\n                    939.7877912322679,\n                    541.9461713433266,\n                    1.0,\n                    920.3256988873086,\n                    552.4257595290742,\n                    1.0,\n                    899.3665225158134,\n                    564.4024317413568,\n                    1.0,\n                    891.8811023831367,\n                    582.3674400597811,\n                    1.0,\n                    888.886934330066,\n                    595.8411962985992,\n                    1.0,\n                    917.3315308342378,\n                    580.8703560332456,\n                    1.0,\n                    909.846110701561,\n                    600.3324483782053,\n                    1.0,\n                    902.3606905688841,\n                    606.3207844843469,\n                    1.0,\n                    896.3723544627428,\n                    607.8178685108819,\n                    1.0,\n                    932.3023710995913,\n                    586.8586921393871,\n                    1.0,\n                    920.3256988873086,\n                    607.8178685108819,\n                    1.0,\n                    909.846110701561,\n                    609.3149525374174,\n                    1.0,\n                    902.3606905688841,\n                    606.3207844843469,\n                    1.0,\n                    942.7819592853386,\n                    591.3499442189932,\n                    1.0,\n                    930.805287073056,\n                    609.3149525374174,\n                    1.0,\n                    920.3256988873086,\n                    609.3149525374174,\n                    1.0,\n                    914.337362781167,\n                    606.3207844843469,\n                    1.0,\n                    951.764463444551,\n                    592.8470282455287,\n                    1.0,\n                    941.2848752588034,\n                    606.3207844843469,\n                    1.0,\n                    932.3023710995913,\n                    606.3207844843469,\n                    1.0,\n                    926.3140349934497,\n                    604.8237004578114,\n                    1.0\n                ],\n                \"hand_right_keypoints_2d\": [\n                    632.8855657925208,\n                    528.4724151045084,\n                    1.0,\n                    634.3826498190563,\n                    540.4490873167911,\n                    1.0,\n                    637.376817872127,\n                    550.9286755025387,\n                    1.0,\n                    635.8797338455915,\n                    565.8995157678924,\n                    1.0,\n                    637.376817872127,\n                    576.3791039536395,\n                    1.0,\n                    611.926389421026,\n                    562.9053477148213,\n                    1.0,\n                    617.9147255271673,\n                    579.3732720067105,\n                    1.0,\n                    631.3884817659855,\n                    582.3674400597811,\n                    1.0,\n                    643.3651539782682,\n                    583.8645240863166,\n                    1.0,\n                    611.926389421026,\n                    567.3965997944274,\n                    1.0,\n                    619.4118095537026,\n                    582.3674400597811,\n                    1.0,\n                    634.3826498190563,\n                    583.8645240863166,\n                    1.0,\n                    644.8622380048037,\n                    579.3732720067105,\n                    1.0,\n                    613.4234734475613,\n                    568.8936838209629,\n                    1.0,\n                    623.9030616333087,\n                    582.3674400597811,\n                    1.0,\n                    635.8797338455915,\n                    582.3674400597811,\n                    1.0,\n                    644.8622380048037,\n                    579.3732720067105,\n                    1.0,\n                    617.9147255271673,\n                    570.3907678474984,\n                    1.0,\n                    626.8972296863794,\n                    579.3732720067105,\n                    1.0,\n                    635.8797338455915,\n                    580.8703560332456,\n                    1.0,\n                    641.8680699517329,\n                    577.876187980175,\n                    1.0\n                ]\n            }\n        ],\n        \"canvas_height\": 1024,\n        \"canvas_width\": 1024\n    }\n]"
+      }
+    }
+  ],
+  "links": [
+    [
+      10,
+      19,
+      0,
+      8,
+      0,
+      "LATENT"
+    ],
+    [
+      11,
+      15,
+      0,
+      8,
+      1,
+      "VAE"
+    ],
+    [
+      81,
+      45,
+      0,
+      12,
+      0,
+      "CLIP"
+    ],
+    [
+      79,
+      44,
+      0,
+      46,
+      0,
+      "MODEL"
+    ],
+    [
+      39,
+      11,
+      0,
+      19,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      40,
+      12,
+      0,
+      19,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      78,
+      28,
+      0,
+      19,
+      3,
+      "LATENT"
+    ],
+    [
+      80,
+      45,
+      0,
+      11,
+      0,
+      "CLIP"
+    ],
+    [
+      105,
+      8,
+      0,
+      47,
+      0,
+      "IMAGE"
+    ],
+    [
+      106,
+      46,
+      0,
+      52,
+      0,
+      "MODEL"
+    ],
+    [
+      107,
+      51,
+      0,
+      52,
+      1,
+      "MODEL_PATCH"
+    ],
+    [
+      109,
+      52,
+      0,
+      19,
+      0,
+      "MODEL"
+    ],
+    [
+      110,
+      48,
+      0,
+      55,
+      0,
+      "IMAGE"
+    ],
+    [
+      111,
+      55,
+      0,
+      49,
+      0,
+      "IMAGE"
+    ],
+    [
+      114,
+      49,
+      1,
+      56,
+      0,
+      "POSE_KEYPOINT"
+    ],
+    [
+      112,
+      56,
+      0,
+      50,
+      0,
+      "IMAGE"
+    ],
+    [
+      113,
+      56,
+      0,
+      53,
+      0,
+      "IMAGE"
+    ],
+    [
+      108,
+      56,
+      0,
+      52,
+      2,
+      "IMAGE"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "1. Anima Turbo + LoRA + Pose ControlNet",
+      "bounding": [
+        -1540,
+        30,
+        1550,
+        580
+      ],
+      "color": "#3f789e",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "2. 프롬프트 / 이미지 생성",
+      "bounding": [
+        10,
+        30,
+        2040,
+        770
+      ],
+      "color": "#6d8c52",
+      "font_size": 24,
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "3. 참고 이미지 → 본 추출 → 직접 편집",
+      "bounding": [
+        -1540,
+        790,
+        2330,
+        750
+      ],
+      "color": "#8b668b",
+      "font_size": 24,
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.65,
+      "offset": [
+        1540,
+        40
+      ]
+    }
+  },
+  "version": 0.4
+}

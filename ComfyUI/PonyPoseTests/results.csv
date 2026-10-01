@@ -1,0 +1,14 @@
+﻿name,controlnet,strength,end_percent,seed,pose,status,seconds,pck_body,pck_arms,people_detected,image
+pony_baseline_seed20261001,,0.0,,20261001,source,success,24.25,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_baseline_seed20261001_00001_.png
+pony_baseline_seed20261002,,0.0,,20261002,source,success,18.53,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_baseline_seed20261002_00001_.png
+pony_thibaud_s1_seed20261001,thibaud,1.0,,20261001,source,success,47.55,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_thibaud_s1_seed20261001_00001_.png
+pony_thibaud_s1_seed20261002,thibaud,1.0,,20261002,source,success,37.52,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_thibaud_s1_seed20261002_00001_.png
+pony_thibaud_s1.5_seed20261001,thibaud,1.5,,20261001,source,success,34.33,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_thibaud_s1.5_seed20261001_00001_.png
+pony_thibaud_s1.5_seed20261002,thibaud,1.5,,20261002,source,success,32.58,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_thibaud_s1.5_seed20261002_00001_.png
+pony_xinsir_s1.5_seed20261001,xinsir,1.5,,20261001,source,success,52.45,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_xinsir_s1.5_seed20261001_00001_.png
+pony_xinsir_s1.5_seed20261002,xinsir,1.5,,20261002,source,success,27.24,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_xinsir_s1.5_seed20261002_00001_.png
+pony_xinsir_s2_seed20261001,xinsir,2.0,,20261001,source,success,249.39,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_xinsir_s2_seed20261001_00001_.png
+pony_xinsir_s2_seed20261002,xinsir,2.0,,20261002,source,success,74.72,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_xinsir_s2_seed20261002_00001_.png
+pony_edited_thibaud_s1.5,thibaud,1.5,,20261001,edited,success,259.02,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_edited_thibaud_s1.5_00001_.png
+pony_edited_xinsir_s2,xinsir,2.0,,20261001,edited,error,,,,,
+pony_quality_thibaud_s0.75_end0.75,thibaud,0.75,0.75,20261001,source,success,61.08,,,,D:\@LEEDONGMIN_STUDY\COMFYUI\Work\ComfyUI\output\PonyPoseTests\pony_quality_thibaud_s0.75_end0.75_00001_.png

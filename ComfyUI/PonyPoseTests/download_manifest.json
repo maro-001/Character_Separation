@@ -1,0 +1,12 @@
+{
+  "model_id": 257749,
+  "version_id": 290640,
+  "file_id": 228616,
+  "model_name": "Pony Diffusion V6 XL",
+  "version": "V6 (start with this one)",
+  "filename": "ponyDiffusionV6XL_v6StartWithThisOne.safetensors",
+  "bytes": 6938041050,
+  "sha256": "67ab2fd8ec439a89b3fedb15cc65f54336af163c7eb5e4f2acc98f090a29b0b3",
+  "source": "https://civitai.com/api/download/models/290640?fileId=228616",
+  "installed_path": "D:\\@LEEDONGMIN_STUDY\\COMFYUI\\Work\\models\\checkpoints\\ponyDiffusionV6XL_v6StartWithThisOne.safetensors"
+}

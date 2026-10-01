@@ -1,0 +1,15 @@
+{
+  "checkpoint": "ponyDiffusionV6XL_v6StartWithThisOne.safetensors",
+  "prompt": "score_9, score_8_up, score_7_up, score_6_up, score_5_up, score_4_up, rating_safe, source_anime, two adult male knights, 2boys, full body, both characters fully visible, full plate armor, castle courtyard",
+  "negative": "",
+  "width": 1024,
+  "height": 1024,
+  "steps": 25,
+  "cfg": 7.0,
+  "sampler": "euler_ancestral",
+  "scheduler": "normal",
+  "clip_skip": 2,
+  "server": "http://127.0.0.1:8188",
+  "source": "D:/Download/pose (1).json",
+  "sha256": "827d86120538f91065ceeb3ea61672a2ab4040c2df5070dd02f8a3fabf7a0407"
+}

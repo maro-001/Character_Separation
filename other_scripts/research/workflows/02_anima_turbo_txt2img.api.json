@@ -1,0 +1,80 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "_meta": { "title": "1. Anima 확산 모델 로드" },
+    "inputs": {
+      "unet_name": "anima_turboV11.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": { "title": "2. 그림체 LoRA (UNet 전용)" },
+    "inputs": {
+      "model": ["1", 0],
+      "lora_name": "Anima_Style_Lora.safetensors",
+      "strength_model": 1.0
+    }
+  },
+  "3": {
+    "class_type": "CLIPLoader",
+    "_meta": { "title": "3. 텍스트 인코더 (Qwen3-0.6B)" },
+    "inputs": {
+      "clip_name": "qwen_3_06b_base.safetensors",
+      "type": "stable_diffusion",
+      "device": "default"
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "_meta": { "title": "4. VAE (Qwen-Image)" },
+    "inputs": { "vae_name": "qwen_image_vae.safetensors" }
+  },
+  "5": {
+    "class_type": "CLIPTextEncode",
+    "_meta": { "title": "5. Positive (자연어)" },
+    "inputs": {
+      "text": "Two girls standing side by side against a plain background. The girl on the left has long red hair and wears a blue dress. The girl on the right has short black hair and wears a white shirt. Clean anime illustration, flat shading, crisp lineart.",
+      "clip": ["3", 0]
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "_meta": { "title": "6. Negative" },
+    "inputs": {
+      "text": "worst quality, low quality, score_1, score_2, score_3, blurry, jpeg artifacts, sepia",
+      "clip": ["3", 0]
+    }
+  },
+  "7": {
+    "class_type": "EmptyLatentImage",
+    "_meta": { "title": "7. 빈 Latent" },
+    "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }
+  },
+  "8": {
+    "class_type": "KSampler",
+    "_meta": { "title": "8. 샘플링 (turbo: 8 steps / cfg 1.0)" },
+    "inputs": {
+      "seed": 20260914,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "model": ["2", 0],
+      "positive": ["5", 0],
+      "negative": ["6", 0],
+      "latent_image": ["7", 0]
+    }
+  },
+  "9": {
+    "class_type": "VAEDecode",
+    "_meta": { "title": "9. Latent -> 이미지" },
+    "inputs": { "samples": ["8", 0], "vae": ["4", 0] }
+  },
+  "10": {
+    "class_type": "SaveImage",
+    "_meta": { "title": "10. 저장" },
+    "inputs": { "filename_prefix": "anima_2girls", "images": ["9", 0] }
+  }
+}

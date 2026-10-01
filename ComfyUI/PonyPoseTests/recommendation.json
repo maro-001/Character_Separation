@@ -1,0 +1,11 @@
+{
+  "name": "pony_quality_thibaud_s0.75_end0.75",
+  "controlnet": "thibaud",
+  "strength": 0.75,
+  "end_percent": 0.75,
+  "seed": 20261001,
+  "pose": "source",
+  "status": "success",
+  "seconds": 61.08,
+  "image": "D:\\@LEEDONGMIN_STUDY\\COMFYUI\\Work\\ComfyUI\\output\\PonyPoseTests\\pony_quality_thibaud_s0.75_end0.75_00001_.png"
+}

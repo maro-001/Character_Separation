@@ -1,0 +1,6 @@
+{
+    "repository":  "https://github.com/westNeighbor/ComfyUI-ultimate-openpose-editor",
+    "commit":  "70774f0e12e4cee26e9b36c2f2a44f243b2dff95",
+    "local_path":  "ControlNet/custom_nodes/ComfyUI-ultimate-openpose-editor",
+    "purpose":  "Preserve edited pose JSON and restore saved reference poses"
+}

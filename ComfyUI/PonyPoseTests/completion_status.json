@@ -1,0 +1,10 @@
+{
+  "stopped_by_user": true,
+  "successful_generations": 12,
+  "failed_or_timed_out": 1,
+  "automatic_pose_evaluation_complete": false,
+  "chosen_case": "pony_quality_thibaud_s0.75_end0.75",
+  "modified_arm_verified_case": "pony_edited_thibaud_s1.5",
+  "chosen_lower_strength_modified_arm_verified": false,
+  "server_stopped": true
+}

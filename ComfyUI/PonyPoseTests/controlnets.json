@@ -1,0 +1,14 @@
+[
+  {
+    "name": "thibaud_openpose_sdxl.safetensors",
+    "sha256": "5a4b928cb1e93748217900cb66d4135bf70d932d2924232f925910fad9e43a92",
+    "bytes": 5004167829,
+    "path": "D:\\@LEEDONGMIN_STUDY\\COMFYUI\\Work\\models\\controlnet\\thibaud_openpose_sdxl.safetensors"
+  },
+  {
+    "name": "xinsir_openpose_sdxl.safetensors",
+    "sha256": "b8524e557a7df60d081f5d4a0eb109967d107df217943bf88c2d99b9ebcc06c5",
+    "bytes": 2502139104,
+    "path": "D:\\@LEEDONGMIN_STUDY\\COMFYUI\\Work\\models\\controlnet\\xinsir_openpose_sdxl.safetensors"
+  }
+]

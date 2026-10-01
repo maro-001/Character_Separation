@@ -1,0 +1,86 @@
+[
+  {
+    "name": "pony_baseline_seed20261001",
+    "controlnet": "",
+    "strength": 0.0,
+    "seed": 20261001,
+    "pose": "source"
+  },
+  {
+    "name": "pony_baseline_seed20261002",
+    "controlnet": "",
+    "strength": 0.0,
+    "seed": 20261002,
+    "pose": "source"
+  },
+  {
+    "name": "pony_thibaud_s1_seed20261001",
+    "controlnet": "thibaud",
+    "strength": 1.0,
+    "seed": 20261001,
+    "pose": "source"
+  },
+  {
+    "name": "pony_thibaud_s1_seed20261002",
+    "controlnet": "thibaud",
+    "strength": 1.0,
+    "seed": 20261002,
+    "pose": "source"
+  },
+  {
+    "name": "pony_thibaud_s1.5_seed20261001",
+    "controlnet": "thibaud",
+    "strength": 1.5,
+    "seed": 20261001,
+    "pose": "source"
+  },
+  {
+    "name": "pony_thibaud_s1.5_seed20261002",
+    "controlnet": "thibaud",
+    "strength": 1.5,
+    "seed": 20261002,
+    "pose": "source"
+  },
+  {
+    "name": "pony_xinsir_s1.5_seed20261001",
+    "controlnet": "xinsir",
+    "strength": 1.5,
+    "seed": 20261001,
+    "pose": "source"
+  },
+  {
+    "name": "pony_xinsir_s1.5_seed20261002",
+    "controlnet": "xinsir",
+    "strength": 1.5,
+    "seed": 20261002,
+    "pose": "source"
+  },
+  {
+    "name": "pony_xinsir_s2_seed20261001",
+    "controlnet": "xinsir",
+    "strength": 2.0,
+    "seed": 20261001,
+    "pose": "source"
+  },
+  {
+    "name": "pony_xinsir_s2_seed20261002",
+    "controlnet": "xinsir",
+    "strength": 2.0,
+    "seed": 20261002,
+    "pose": "source"
+  },
+  {
+    "name": "pony_edited_thibaud_s1.5",
+    "controlnet": "thibaud",
+    "strength": 1.5,
+    "seed": 20261001,
+    "pose": "edited"
+  },
+  {
+    "name": "pony_edited_xinsir_s2",
+    "controlnet": "xinsir",
+    "strength": 2.0,
+    "seed": 20261001,
+    "pose": "edited"
+  }
+]

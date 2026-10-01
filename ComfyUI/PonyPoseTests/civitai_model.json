@@ -1,0 +1,40 @@
+{
+  "id": 257749,
+  "name": "Pony Diffusion V6 XL",
+  "modelVersions": [
+    {
+      "id": 290640,
+      "name": "V6 (start with this one)",
+      "files": [
+        {
+          "id": 228616,
+          "sizeKB": 6775430.712890625,
+          "name": "ponyDiffusionV6XL_v6StartWithThisOne.safetensors",
+          "overrideName": null,
+          "type": "Model",
+          "pickleScanResult": "Success",
+          "pickleScanMessage": "No Pickle imports",
+          "virusScanResult": "Success",
+          "virusScanMessage": null,
+          "scannedAt": "2025-09-30T18:34:49.911Z",
+          "metadata": {
+            "format": "SafeTensor",
+            "size": "pruned",
+            "fp": "fp16"
+          },
+          "hashes": {
+            "AutoV1": "E577480D",
+            "AutoV2": "67AB2FD8EC",
+            "SHA256": "67AB2FD8EC439A89B3FEDB15CC65F54336AF163C7EB5E4F2ACC98F090A29B0B3",
+            "CRC32": "CFAD6694",
+            "BLAKE3": "E0BB278C0127A4AC4267498174E0226D6A0A77A636BDF82B770CF05D5B85D3CA",
+            "AutoV3": "E023C143436D",
+            "SHA256_12": "67AB2FD8EC43"
+          },
+          "downloadUrl": "https://civitai.com/api/download/models/290640?fileId=228616",
+          "primary": true
+        }
+      ]
+    }
+  ]
+}
