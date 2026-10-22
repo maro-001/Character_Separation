@@ -150,11 +150,239 @@ class BonePromptTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "context length"):
             core.inject_attention(q, k[:, :2], v[:, :2], options, attention)
 
+    def test_reference_text_is_preserved_and_validated(self):
+        binding = {**self.bindings[0], "reference_text": "steel armored forearm"}
+        resolved, = core.resolve_bindings(self.pose, [binding], 8, 0.1)
+        self.assertEqual(resolved["reference_text"], binding["reference_text"])
+        with self.assertRaisesRegex(ValueError, "reference_text"):
+            core.resolve_bindings(self.pose, [{**binding, "reference_text": 3}], 8, 0.1)
+
+    def test_reference_attention_subtracts_neutral_instead_of_scene(self):
+        q, k, v, options = self.attention_case((0.5, 1.0))
+        # Target value 6 minus neutral value 10, added to scene value 2.
+        options["bone_prompt"]["bindings"] = [{
+            **options["bone_prompt"]["bindings"][0], "reference_start": 1, "reference_end": 2,
+        }]
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[:, 1], torch.zeros(1, 4))
+        torch.testing.assert_close(result[:, [0, 2, 3, 4, 5, 6, 7]], torch.full((1, 7, 4), 2.0))
+
+    def test_identical_target_and_reference_leave_scene_unchanged(self):
+        q, k, v, options = self.attention_case((1.5, 1.0))
+        k[:, 3], v[:, 3] = k[:, 2], v[:, 2]
+        options["bone_prompt"]["bindings"] = [{
+            **options["bone_prompt"]["bindings"][0], "reference_start": 1, "reference_end": 2,
+        }]
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result, attention(q, k[:, :2], v[:, :2], 2), rtol=0, atol=0)
+
+    def test_minimum_grid_skips_coarse_features(self):
+        q, k, v, options = self.attention_case()
+        binding = options["bone_prompt"]["bindings"][0]
+        binding["min_grid_size"] = 3
+        expected = attention(q, k[:, :2], v[:, :2], 2)
+        torch.testing.assert_close(core.inject_attention(q, k, v, options, attention), expected, rtol=0, atol=0)
+        binding["min_grid_size"] = 2
+        self.assertFalse(torch.equal(core.inject_attention(q, k, v, options, attention), expected))
+
+    def test_batch_gates_do_not_dilute_overlapping_active_bones(self):
+        q, k, v, options = self.attention_case((1.0, 1.0))
+        q, k, v = [tensor.repeat(2, 1, 1) for tensor in (q, k, v)]
+        first, second = options["bone_prompt"]["bindings"]
+        second["points"] = first["points"]
+        first["gate"] = torch.tensor([False, True]).reshape(2, 1, 1)
+        second["gate"] = torch.tensor([True, False]).reshape(2, 1, 1)
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[0, 1], torch.full((4,), 10.0))
+        torch.testing.assert_close(result[1, 1], torch.full((4,), 6.0))
+
+    def test_zero_batch_gate_matches_scene(self):
+        q, k, v, options = self.attention_case()
+        options["bone_prompt"]["bindings"][0]["gate"] = torch.tensor([False]).reshape(1, 1, 1)
+        expected = attention(q, k[:, :2], v[:, :2], 2)
+        torch.testing.assert_close(core.inject_attention(q, k, v, options, attention), expected, rtol=0, atol=0)
+
+    def test_tuning_parameters_are_preserved_without_changing_text(self):
+        binding = {**self.bindings[0], "min_grid_size": 64, "start_percent": 0.25, "end_percent": 0.85}
+        resolved, = core.resolve_bindings(self.pose, [binding], 8, 0.1)
+        for key in ("text", "min_grid_size", "start_percent", "end_percent"):
+            self.assertEqual(resolved[key], binding[key])
+        for key in ("min_grid_size", "start_percent", "end_percent"):
+            with self.assertRaisesRegex(ValueError, key):
+                core.resolve_bindings(self.pose, [{**binding, key: float("nan")}], 8, 0.1)
+
     def test_native_comfy_attention_and_model_patcher_integration(self):
         # Isolate ComfyUI's CPU startup policy from other pytest modules.
         result = subprocess.run([sys.executable, "-c", NATIVE_CHECK], cwd=COMFY_ROOT,
                                 capture_output=True, text=True, timeout=90)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_token_selection_validation(self):
+        binding = {**self.bindings[0], "reference_text": "silver", "token_indices": [2, 8, 13],
+                   "reference_token_indices": [2, 8, 14]}
+        resolved, = core.resolve_bindings(self.pose, [binding], 8, 0.1)
+        self.assertEqual(resolved["token_indices"], [2, 8, 13])
+        self.assertIsNot(resolved["token_indices"], binding["token_indices"])
+        for indices in ([], [1, 1], [-1], [True], [1.5], "2"):
+            with self.subTest(indices=indices), self.assertRaisesRegex(ValueError, "token_indices"):
+                core.resolve_bindings(self.pose, [{**binding, "token_indices": indices}], 8, 0.1)
+        with self.assertRaisesRegex(ValueError, "requires reference_text"):
+            core.resolve_bindings(self.pose, [{**self.bindings[0], "reference_token_indices": [2]}], 8, 0.1)
+
+    def test_opposite_routes_same_person_and_protects_explicit_target(self):
+        binding = {**self.bindings[0], "opposite_strength": 0.5}
+        resolved, = core.resolve_bindings(self.pose, [binding], 8, 0.1)
+        opposite, = core.resolve_bindings(self.pose, [{**self.bindings[0], "bone": "left_forearm"}], 8, 0.1)
+        self.assertEqual(resolved["opposite_bone"], "left_forearm")
+        self.assertEqual(resolved["opposite_points"], opposite["points"])
+        explicit = core.resolve_bindings(self.pose, [binding, {**binding, "bone": "left_forearm"}], 8, 0.1)
+        self.assertTrue(all("opposite_points" not in item for item in explicit))
+        with self.assertRaisesRegex(ValueError, "no anatomical opposite"):
+            core.resolve_bindings(self.pose, [{**binding, "bone": "neck"}], 8, 0.1)
+
+    def test_competition_subtracts_other_attribute_only_at_target_samples(self):
+        q, k, v, options = self.attention_case((1.0, 1.0))
+        options["bone_prompt"]["bindings"][0]["competition_strength"] = 1
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[:, 1], torch.full((1, 4), -2.0))
+        torch.testing.assert_close(result[:, 3], torch.full((1, 4), 10.0))
+        torch.testing.assert_close(result[:, [0, 2, 4, 5, 6, 7]], torch.full((1, 6, 4), 2.0))
+
+    def test_competition_excludes_inactive_and_negative_bindings_per_batch(self):
+        q, k, v, options = self.attention_case((1.0, 1.0))
+        q, k, v = [tensor.repeat(2, 1, 1) for tensor in (q, k, v)]
+        first, second = options["bone_prompt"]["bindings"]
+        first["competition_strength"] = 1
+        second["gate"] = torch.tensor([False, True]).reshape(2, 1, 1)
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[:, 1, 0], torch.tensor([6.0, -2.0]))
+        second["strength"] = -0.5
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[:, 1], torch.full((2, 4), 6.0))
+        torch.testing.assert_close(result[:, 3, 0], torch.tensor([2.0, -2.0]))
+
+    def test_invalid_tuning_windows_and_suppression_strengths(self):
+        for settings in ({"start_percent": 0.7, "end_percent": 0.3}, {"start_percent": -0.1},
+                         {"end_percent": 1.1}, {"competition_strength": -1}, {"opposite_strength": -1}):
+            with self.subTest(settings=settings), self.assertRaises(ValueError):
+                core.resolve_bindings(self.pose, [{**self.bindings[0], **settings}], 8, 0.1)
+
+    def test_sample_queries_keep_local_attention_instead_of_repeating_bone_mean(self):
+        q, k, v, options = self.attention_case((1.0, 1.0))
+        q[:, 1, 0], q[:, 2, 0] = -2, 2
+        k[:, 2, 0], k[:, 3, 0] = -3, 3
+        options["bone_prompt"]["bindings"] = [{
+            **options["bone_prompt"]["bindings"][0], "end": 2,
+            "points": ((0.25, 0), (0.5, 0)), "query_mode": "sample",
+        }]
+        result = core.inject_attention(q, k, v, options, attention)
+        expected = attention(q[:, [1, 2]], k[:, 2:], v[:, 2:], 2)
+        torch.testing.assert_close(result[:, [1, 2]], expected)
+        self.assertFalse(torch.allclose(result[:, 1], result[:, 2]))
+        torch.testing.assert_close(result[:, [0, 3, 4, 5, 6, 7]], torch.full((1, 6, 4), 2.0))
+
+    def test_block_selection_excludes_inactive_competitors(self):
+        q, k, v, options = self.attention_case((1.0, 1.0))
+        first, second = options["bone_prompt"]["bindings"]
+        first.update(competition_strength=1, block_types=["output"])
+        second["block_types"] = ["input"]
+        options["block"] = ("output", 0)
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[:, 1], torch.full((1, 4), 6.0))
+        torch.testing.assert_close(result[:, 3], torch.full((1, 4), 2.0))
+        options["block"] = ("input", 0)
+        result = core.inject_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[:, 1], torch.full((1, 4), 2.0))
+        torch.testing.assert_close(result[:, 3], torch.full((1, 4), 10.0))
+        options["block"] = ("middle", 0)
+        torch.testing.assert_close(core.inject_attention(q, k, v, options, attention),
+                                   attention(q, k[:, :2], v[:, :2], 2), rtol=0, atol=0)
+
+    def test_sample_queries_use_matching_reference_query_for_each_location(self):
+        torch.manual_seed(19)
+        q, k, v = [torch.randn(2, length, 8, dtype=torch.float64) for length in (8, 6, 6)]
+        binding = {"points": ((0.25, 0), (0.5, 0)), "start": 0, "end": 2,
+                   "reference_start": 2, "reference_end": 4, "query_mode": "sample", "strength": 0.5}
+        options = {"n_heads": 2, "activations_shape": [2, 8, 2, 4],
+                   "bone_prompt": {"base_tokens": 2, "bone_tokens": 4, "bindings": [binding]}}
+        baseline = attention(q, k[:, :2], v[:, :2], 2)
+        expected = baseline.clone()
+        expected[:, [1, 2]] += 0.5 * (attention(q[:, [1, 2]], k[:, 2:4], v[:, 2:4], 2)
+                                             - attention(q[:, [1, 2]], k[:, 4:6], v[:, 4:6], 2))
+        torch.testing.assert_close(core.inject_attention(q, k, v, options, attention), expected)
+
+    def test_query_mode_and_block_types_validation(self):
+        binding = {**self.bindings[0], "query_mode": "sample", "block_types": ["output"]}
+        resolved, = core.resolve_bindings(self.pose, [binding], 8, 0.1)
+        self.assertEqual(resolved["query_mode"], "sample")
+        self.assertEqual(resolved["block_types"], ["output"])
+        self.assertIsNot(resolved["block_types"], binding["block_types"])
+        for fields in ({"query_mode": "pixel"}, {"block_types": []},
+                       {"block_types": "output"}, {"block_types": ["input", "unknown"]}):
+            with self.subTest(fields=fields), self.assertRaises(ValueError):
+                core.resolve_bindings(self.pose, [{**binding, **fields}], 8, 0.1)
+
+    def test_tubular_sampling_and_unbound_arm_isolation_points(self):
+        resolved, = core.resolve_bindings(self.pose, self.bindings, 8, 0.1)
+        self.assertIn("tube_points", resolved)
+        self.assertIn("unbound_points", resolved)
+        self.assertGreater(len(resolved["tube_points"]), len(resolved["points"]))
+        bound_idx = set(core.sample_indices(resolved["tube_points"], 64, 64))
+        unbound_idx = set(core.sample_indices(resolved["unbound_points"], 64, 64))
+        self.assertTrue(bound_idx)
+        self.assertTrue(unbound_idx - bound_idx)
+
+    def test_self_attention_isolation_prevents_bound_bone_leak_to_scene_and_other_limbs(self):
+        q = torch.zeros(1, 4, 4)
+        k = torch.zeros(1, 4, 4)
+        v = torch.tensor([[[1.0, 0, 0, 0], [100.0, 0, 0, 0], [200.0, 0, 0, 0], [3.0, 0, 0, 0]]])
+        options = {
+            "n_heads": 2,
+            "activations_shape": [1, 4, 2, 2],
+            "bone_prompt": {
+                "base_tokens": 2,
+                "bone_tokens": 2,
+                "bindings": [
+                    {"points": ((0.75, 0.25),), "strength": 1.0, "unbound_points": ((0.75, 0.75),)},
+                    {"points": ((0.25, 0.75),), "strength": 1.0, "unbound_points": ((0.75, 0.75),)},
+                ],
+            },
+        }
+        result = core.isolate_self_attention(q, k, v, options, attention)
+        # Unbound indices [0, 3] only attend to [0, 3] -> mean of 1.0 and 3.0 is 2.0 (no leak from 100 or 200)
+        torch.testing.assert_close(result[:, [0, 3], 0], torch.tensor([[2.0, 2.0]]))
+        # Bound index 1 attends to [0, 1] (excluding other bound index 2 and unbound arm index 3) -> mean(1, 100) = 50.5
+        torch.testing.assert_close(result[:, 1, 0], torch.tensor([50.5]))
+
+    def test_attribute_indices_reinforce_weaker_binding_delta(self):
+        q = torch.zeros(1, 4, 4)
+        k = torch.zeros(1, 6, 4)
+        v = torch.zeros(1, 6, 4)
+        v[:, :2] = 1.0
+        v[:, 2:4] = torch.tensor([[[4.0, 0, 0, 0], [8.0, 0, 0, 0]]])
+        v[:, 4:6] = 0.0
+        options = {
+            "n_heads": 2,
+            "activations_shape": [1, 4, 2, 2],
+            "bone_prompt": {
+                "base_tokens": 2,
+                "bone_tokens": 4,
+                "bindings": [{
+                    "points": ((0.25, 0.25),),
+                    "start": 0,
+                    "end": 2,
+                    "reference_start": 2,
+                    "reference_end": 4,
+                    "strength": 1.0,
+                    "attribute_indices": [1],
+                    "attribute_strength": 0.5,
+                }],
+            },
+        }
+        result = core.inject_attention(q, k, v, options, attention)
+        # Base is 1.0, full delta is mean(4, 8) - 0 = 6.0, attr delta at index 1 is 8.0 - 0 = 8.0 * 0.5 = 4.0 -> total 11.0
+        torch.testing.assert_close(result[:, 0, 0], torch.tensor([11.0]))
+
 
 
 NATIVE_CHECK = r'''
@@ -205,6 +433,27 @@ assert "bone_prompt_embeddings" not in metadata["model_conds"]
 assert encoded[0][0] is scene
 assert encoded[0][1]["pooled_output"] is metadata["pooled_output"]
 
+class ReferenceClip(Clip):
+    def encode_from_tokens_scheduled(self, tokens):
+        if tokens == "neutral":
+            return [[torch.full((1, 3, 2048), 7.0), {"start_percent": 0.25, "end_percent": 0.75}]]
+        return super().encode_from_tokens_scheduled(tokens)
+
+reference_encoded = bone_prompt.encode_bindings(ReferenceClip(), [[scene, metadata]], [
+    {**binding, "reference_text": "neutral"}, {**binding, "person": 1},
+])
+assert len(reference_encoded) == 2
+assert [(meta["start_percent"], meta["end_percent"]) for _, meta in reference_encoded] == [(0.25, 0.5), (0.5, 0.75)]
+for _, meta in reference_encoded:
+    conditions = meta["model_conds"]
+    embeddings = conditions[bone_prompt.EMBEDDING_KEY].cond
+    first, second = conditions[bone_prompt.LAYOUT_KEY].cond
+    assert (first["start"], first["end"], first["reference_start"], first["reference_end"]) == (0, 2, 2, 5)
+    assert (second["start"], second["end"]) == (5, 7)
+    assert "reference_start" not in second
+    assert embeddings.shape == (1, 7, 2048)
+    torch.testing.assert_close(embeddings[:, 2:5], torch.full((1, 3, 2048), 7.0))
+
 config = comfy.supported_models_base.BASE({
     "image_size": 8, "in_channels": 4, "out_channels": 4, "model_channels": 32,
     "num_res_blocks": [1], "channel_mult": [1], "use_spatial_transformer": True,
@@ -250,6 +499,136 @@ with TemporaryDirectory() as directory, patch.object(bone_prompt.folder_paths, "
         [[torch.randn_like(scene), {}]], torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
     assert sampled.shape == (1, 4, 8, 8)
     assert torch.isfinite(sampled).all()
+    reference_patched, reference_positive = bone_prompt.BonePromptInject().inject(
+        patcher, ReferenceClip(), [[scene, metadata]], "pose.json",
+        json.dumps([{"person": 0, "bone": "right_forearm", "text": "red", "reference_text": "neutral"}]), 8, 0.1)
+    reference_sampled = comfy.sample.sample(reference_patched, torch.randn(1, 4, 8, 8), 2, 4.0,
+        "euler", "normal", reference_positive, [[torch.randn_like(scene), {}]],
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert reference_sampled.shape == (1, 4, 8, 8)
+    assert torch.isfinite(reference_sampled).all()
+    scheduled_patched, scheduled_positive = bone_prompt.BonePromptInject().inject(
+        patcher, ReferenceClip(), [[scene, metadata]], "pose.json",
+        json.dumps([{"person": 0, "bone": "right_forearm", "text": "red", "reference_text": "neutral",
+                     "min_grid_size": 2, "start_percent": 0.25, "end_percent": 0.85}]), 8, 0.1)
+    scheduled_conds = scheduled_positive[0][1]["model_conds"]
+    scheduled_layout = scheduled_conds[bone_prompt.LAYOUT_KEY].cond
+    item, = scheduled_layout
+    assert item["min_grid_size"] == 2
+    assert item["start_sigma"] > item["end_sigma"]
+    midpoint = (item["start_sigma"] + item["end_sigma"]) / 2
+    bone_prompt.apply_bone_context(executor, x.repeat(2, 1, 1),
+        torch.tensor([midpoint, item["start_sigma"] * 2]), c_crossattn=scene.repeat(2, 1, 1),
+        transformer_options={}, **{
+            bone_prompt.LAYOUT_KEY: scheduled_layout,
+            bone_prompt.EMBEDDING_KEY: scheduled_conds[bone_prompt.EMBEDDING_KEY].cond.repeat(2, 1, 1),
+        })
+    torch.testing.assert_close(captured["transformer_options"]["bone_prompt"]["bindings"][0]["gate"].flatten(),
+                               torch.tensor([True, False]))
+    assert "gate" not in item
+    scheduled_sampled = comfy.sample.sample(scheduled_patched, torch.randn(1, 4, 8, 8), 4, 4.0,
+        "euler", "normal", scheduled_positive, [[torch.randn_like(scene), {}]],
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert scheduled_sampled.shape == (1, 4, 8, 8)
+    assert torch.isfinite(scheduled_sampled).all()
+
+    class TokenClip(Clip):
+        def encode_from_tokens_scheduled(self, tokens):
+            offset = 10 if tokens == "neutral" else 0
+            values = torch.arange(5, dtype=torch.float32).reshape(1, 5, 1).expand(1, 5, 2048) + offset
+            return [[values, {}]]
+
+    routed_bindings = [{"person": 0, "bone": "right_forearm", "text": "red", "reference_text": "neutral",
+                        "token_indices": [3, 1], "reference_token_indices": [2], "strength": 1,
+                        "opposite_strength": 0.5, "competition_strength": 1,
+                        "query_mode": "sample", "block_types": ["output"]}]
+    routed_patched, routed_positive = bone_prompt.BonePromptInject().inject(
+        patcher, TokenClip(), [[scene, metadata]], "pose.json", json.dumps(routed_bindings), 8, 0.1)
+    conditions = routed_positive[0][1]["model_conds"]
+    target, opposite = conditions[bone_prompt.LAYOUT_KEY].cond
+    assert (target["start"], target["end"], target["reference_start"], target["reference_end"]) == (0, 2, 2, 3)
+    assert opposite["bone"] == "left_forearm" and opposite["strength"] == -0.5
+    assert opposite["competition_strength"] == 0 and opposite["points"] != target["points"]
+    assert target["query_mode"] == opposite["query_mode"] == "sample"
+    assert target["block_types"] == opposite["block_types"] == ["output"]
+    assert opposite["start"] == target["start"] and opposite["reference_start"] == target["reference_start"]
+    torch.testing.assert_close(conditions[bone_prompt.EMBEDDING_KEY].cond[0, :, 0], torch.tensor([3., 1., 12.]))
+    routed_sampled = comfy.sample.sample(routed_patched, torch.randn(1, 4, 8, 8), 2, 4.0,
+        "euler", "normal", routed_positive, [[torch.randn_like(scene), {}]],
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(routed_sampled).all()
+    paired, paired_positive = bone_prompt.BonePromptInject().inject(
+        patcher, TokenClip(), [[scene, metadata]], "pose.json",
+        json.dumps(routed_bindings + [{**routed_bindings[0], "person": 1, "bone": "left_forearm", "text": "blue"}]), 8, 0.1)
+    paired_layout = paired_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert [(item["person"], item["bone"]) for item in paired_layout] == [
+        (0, "right_forearm"), (0, "left_forearm"), (1, "left_forearm"), (1, "right_forearm")]
+    assert paired_layout[2]["start"] == 3 and paired_layout[3]["start"] == 3
+    paired_sampled = comfy.sample.sample(paired, torch.randn(1, 4, 8, 8), 2, 4.0,
+        "euler", "normal", paired_positive, [[torch.randn_like(scene), {}]],
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(paired_sampled).all()
+    try:
+        bone_prompt.encode_bindings(TokenClip(), [[scene, metadata]], [{**binding, "token_indices": [5]}])
+    except ValueError as error:
+        assert "exceeds encoded length" in str(error)
+    else:
+        raise AssertionError("Out-of-range token selection was silently accepted")
+
+    class GraphClip(Clip):
+        def __init__(self):
+            self.calls = []
+        def encode_from_tokens_scheduled(self, tokens):
+            self.calls.append(tokens)
+            return super().encode_from_tokens_scheduled(tokens)
+
+    graph_clip = GraphClip()
+    body_bones = ("right_upper_arm", "left_upper_arm", "right_forearm", "left_forearm", "right_torso",
+                  "left_torso", "right_thigh", "left_thigh", "right_shin", "left_shin")
+    graph_config = [{"person": person, "bone": bone_name, "text": "red" if index % 2 else "blue",
+                     "routing_mode": "graph", "strength": 0.8, "radius": 0.02}
+                    for person in range(2) for index, bone_name in enumerate(body_bones)]
+    graph_patched, graph_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(graph_config), 8, 0.1)
+    assert graph_clip.calls == ["blue", "red"]
+    assert len(graph_positive) == 2
+    graph_conditions = graph_positive[0][1]["model_conds"]
+    graph_layout = graph_conditions[bone_prompt.LAYOUT_KEY].cond
+    assert len(graph_layout) == 20
+    assert all(item["routing_mode"] == "graph" and "tube_points" not in item for item in graph_layout)
+    assert graph_conditions[bone_prompt.EMBEDDING_KEY].cond.shape == (1, 4, 2048)
+    assert graph_layout[0]["start"] == graph_layout[2]["start"]
+    assert graph_patched.model_options["transformer_options"]["patches_replace"]["attn1"]
+    graph_kwargs = {key: value.cond for key, value in graph_conditions.items() if key != "existing"}
+    bone_prompt.apply_bone_context(executor, x, torch.ones(1), c_crossattn=scene,
+                                  transformer_options={}, **graph_kwargs)
+    first_cache = captured["transformer_options"]["bone_prompt"]["route_cache"]
+    first_cache[(8, 8)] = "sentinel"
+    bone_prompt.apply_bone_context(executor, x, torch.ones(1), c_crossattn=scene,
+                                  transformer_options={}, **graph_kwargs)
+    assert captured["transformer_options"]["bone_prompt"]["route_cache"] == {}
+    assert captured["transformer_options"]["bone_prompt"]["route_cache"] is not first_cache
+    graph_sampled = comfy.sample.sample(graph_patched, torch.randn(1, 4, 8, 8), 2, 4.0,
+        "euler", "normal", graph_positive, [[torch.randn_like(scene), {}]],
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(graph_sampled).all() and graph_sampled.shape == (1, 4, 8, 8)
+    assert "route_cache" not in graph_layout[0]
+    graph_clip.calls.clear()
+    selected_config = [{**binding, "token_indices": [1]} for binding in graph_config]
+    _, selected_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(selected_config), 8, 0.1)
+    assert graph_clip.calls == ["blue", "red"]
+    selected_conditions = selected_positive[0][1]["model_conds"]
+    assert selected_conditions[bone_prompt.EMBEDDING_KEY].cond.shape == (1, 2, 2048)
+    selected_layout = selected_conditions[bone_prompt.LAYOUT_KEY].cond
+    assert all(item["end"] - item["start"] == 1 for item in selected_layout)
+    try:
+        bone_prompt.BonePromptInject().inject(patcher, graph_clip, [[scene, metadata]], "pose.json",
+            json.dumps([{**graph_config[0], "token_indices": [999]}]), 8, 0.1)
+    except ValueError as error:
+        assert "Graph token index" in str(error)
+    else:
+        raise AssertionError("Graph accepted an out-of-range attribute token")
 '''
 
 
