@@ -22,7 +22,7 @@ def attention(q, k, v, heads, **kwargs):
     def split(tensor):
         return tensor.reshape(batch, -1, heads, dim // heads).transpose(1, 2)
 
-    result = F.scaled_dot_product_attention(split(q), split(k), split(v))
+    result = F.scaled_dot_product_attention(split(q), split(k), split(v), attn_mask=kwargs.get("mask"))
     return result.transpose(1, 2).reshape(batch, length, dim)
 
 
@@ -386,9 +386,11 @@ class BonePromptTests(unittest.TestCase):
 
 
 NATIVE_CHECK = r'''
+import importlib.util
 import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 from unittest.mock import patch
 import torch
 import comfy.cli_args
@@ -586,7 +588,7 @@ with TemporaryDirectory() as directory, patch.object(bone_prompt.folder_paths, "
     body_bones = ("right_upper_arm", "left_upper_arm", "right_forearm", "left_forearm", "right_torso",
                   "left_torso", "right_thigh", "left_thigh", "right_shin", "left_shin")
     graph_config = [{"person": person, "bone": bone_name, "text": "red" if index % 2 else "blue",
-                     "routing_mode": "graph", "strength": 0.8, "radius": 0.02}
+                     "routing_mode": "graph", "strength": 0.8, "radius": 0.02, "overlap_mode": "nearest"}
                     for person in range(2) for index, bone_name in enumerate(body_bones)]
     graph_patched, graph_positive = bone_prompt.BonePromptInject().inject(
         patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(graph_config), 8, 0.1)
@@ -595,6 +597,7 @@ with TemporaryDirectory() as directory, patch.object(bone_prompt.folder_paths, "
     graph_conditions = graph_positive[0][1]["model_conds"]
     graph_layout = graph_conditions[bone_prompt.LAYOUT_KEY].cond
     assert len(graph_layout) == 20
+    assert all(item["overlap_mode"] == "nearest" for item in graph_layout)
     assert all(item["routing_mode"] == "graph" and "tube_points" not in item for item in graph_layout)
     assert graph_conditions[bone_prompt.EMBEDDING_KEY].cond.shape == (1, 4, 2048)
     assert graph_layout[0]["start"] == graph_layout[2]["start"]
@@ -603,16 +606,101 @@ with TemporaryDirectory() as directory, patch.object(bone_prompt.folder_paths, "
     bone_prompt.apply_bone_context(executor, x, torch.ones(1), c_crossattn=scene,
                                   transformer_options={}, **graph_kwargs)
     first_cache = captured["transformer_options"]["bone_prompt"]["route_cache"]
+    assert all(item["overlap_mode"] == "nearest"
+               for item in captured["transformer_options"]["bone_prompt"]["bindings"])
     first_cache[(8, 8)] = "sentinel"
     bone_prompt.apply_bone_context(executor, x, torch.ones(1), c_crossattn=scene,
                                   transformer_options={}, **graph_kwargs)
     assert captured["transformer_options"]["bone_prompt"]["route_cache"] == {}
     assert captured["transformer_options"]["bone_prompt"]["route_cache"] is not first_cache
-    graph_sampled = comfy.sample.sample(graph_patched, torch.randn(1, 4, 8, 8), 2, 4.0,
-        "euler", "normal", graph_positive, [[torch.randn_like(scene), {}]],
+    graph_noise = torch.randn(1, 4, 8, 8)
+    graph_negative = [[torch.randn_like(scene), {}]]
+    graph_sampled = comfy.sample.sample(graph_patched, graph_noise, 2, 4.0,
+        "euler", "normal", graph_positive, graph_negative,
         torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
     assert torch.isfinite(graph_sampled).all() and graph_sampled.shape == (1, 4, 8, 8)
     assert "route_cache" not in graph_layout[0]
+    sampled_routes_config = [{**binding, "route_samples": 4} for binding in graph_config]
+    sampled_routes_model, sampled_routes_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(sampled_routes_config), 8, 0.1)
+    sampled_routes_layout = sampled_routes_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert all(item["route_samples"] == 4 for item in sampled_routes_layout)
+    sampled_routes_result = comfy.sample.sample(sampled_routes_model, graph_noise, 2, 4.0,
+        "euler", "normal", sampled_routes_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(sampled_routes_result).all()
+    zero_bias_config = [{**binding, "token_bias": 0, "token_bias_indices": [1]} for binding in graph_config]
+    zero_bias_patched, zero_bias_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(zero_bias_config), 8, 0.1)
+    zero_bias_sampled = comfy.sample.sample(zero_bias_patched, graph_noise, 2, 4.0,
+        "euler", "normal", zero_bias_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    torch.testing.assert_close(zero_bias_sampled, graph_sampled, rtol=0, atol=0)
+    biased_config = [{**binding, "token_bias": 2, "token_bias_indices": [1]} for binding in graph_config]
+    biased_patched, biased_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(biased_config), 8, 0.1)
+    biased_layout = biased_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert all(item["token_bias"] == 2 and item["token_bias_indices"] == [1] for item in biased_layout)
+    biased_sampled = comfy.sample.sample(biased_patched, torch.randn(1, 4, 8, 8), 2, 4.0,
+        "euler", "normal", biased_positive, [[torch.randn_like(scene), {}]],
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(biased_sampled).all()
+    graph_clip.calls.clear()
+    contrast_config = [{**binding, "reference_binding": [binding["person"], "right_torso"],
+                        "delta_scale": 0.5} for binding in biased_config]
+    contrast_patched, contrast_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(contrast_config), 8, 0.1)
+    assert graph_clip.calls == ["blue", "red"]
+    contrast_conditions = contrast_positive[0][1]["model_conds"]
+    contrast_layout = contrast_conditions[bone_prompt.LAYOUT_KEY].cond
+    references = {(item["person"], item["bone"]): item for item in contrast_layout}
+    for item in contrast_layout:
+        reference = references[item["person"], "right_torso"]
+        assert (item["reference_start"], item["reference_end"]) == (reference["start"], reference["end"])
+        assert item["reference_token_bias"] == 2 and item["reference_token_bias_indices"] == [1]
+        assert item["delta_scale"] == 0.5
+    assert contrast_conditions[bone_prompt.EMBEDDING_KEY].cond.shape == (1, 4, 2048)
+    contrast_sampled = comfy.sample.sample(contrast_patched, graph_noise, 2, 4.0,
+        "euler", "normal", contrast_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(contrast_sampled).all()
+    target_config = [{**binding, "reference_attention": "target"} for binding in contrast_config]
+    target_patched, target_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(target_config), 8, 0.1)
+    target_layout = target_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert all(item["reference_attention"] == "target" for item in target_layout)
+    target_sampled = comfy.sample.sample(target_patched, graph_noise, 2, 4.0,
+        "euler", "normal", target_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(target_sampled).all()
+    try:
+        bone_prompt.BonePromptInject().inject(patcher, graph_clip, [[scene, metadata]],
+            "pose.json", json.dumps([{**binding, "token_indices": [0], "token_bias_indices": [0]} if index == 0 else binding
+                                      for index, binding in enumerate(target_config)]), 8, 0.1)
+    except ValueError as error:
+        assert "equal target/reference context lengths" in str(error)
+    else:
+        raise AssertionError("Unequal target/reference value sequences were accepted")
+    partition_config = [{**binding, "self_attention_scope": "partition", "self_attention_strength": 0.25,
+                         "joint_falloff": 0.2}
+                        for binding in contrast_config]
+    partition_patched, partition_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(partition_config), 8, 0.1)
+    partition_layout = partition_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert all(item["self_attention_scope"] == "partition" for item in partition_layout)
+    assert all(item["joint_falloff"] == 0.2 for item in partition_layout)
+    partition_sampled = comfy.sample.sample(partition_patched, graph_noise, 2, 4.0,
+        "euler", "normal", partition_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(partition_sampled).all()
+    for fields in ({"token_bias_indices": [2]}, {"token_indices": [1], "token_bias_indices": [1]}):
+        try:
+            bone_prompt.BonePromptInject().inject(patcher, graph_clip, [[scene, metadata]],
+                "pose.json", json.dumps([{**biased_config[0], **fields}]), 8, 0.1)
+        except ValueError as error:
+            assert "attended context length" in str(error)
+        else:
+            raise AssertionError("Out-of-range attention bias was silently accepted")
     graph_clip.calls.clear()
     selected_config = [{**binding, "token_indices": [1]} for binding in graph_config]
     _, selected_positive = bone_prompt.BonePromptInject().inject(
@@ -629,6 +717,27 @@ with TemporaryDirectory() as directory, patch.object(bone_prompt.folder_paths, "
         assert "Graph token index" in str(error)
     else:
         raise AssertionError("Graph accepted an out-of-range attribute token")
+    probe_spec = importlib.util.spec_from_file_location("bone_attention_probe",
+        Path.cwd().parent / "other_scripts/research/37_bone_attention_probe.py")
+    probe = importlib.util.module_from_spec(probe_spec)
+    probe_spec.loader.exec_module(probe)
+    probe_config = [{**graph_config[index], "token_bias": 2, "token_bias_indices": [1],
+                     "start_percent": 0, "end_percent": 1} for index in (2, 4, 13, 14)]
+    plain, plain_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(probe_config), 8, 0.1)
+    shim = SimpleNamespace(NODE_CLASS_MAPPINGS={"BonePromptInject": bone_prompt.BonePromptInject})
+    probe_rows = probe.install_probe(shim, lambda rows: None)
+    measured, measured_positive = shim.NODE_CLASS_MAPPINGS["BonePromptInject"]().inject(
+        model=patcher, clip=graph_clip, positive=[[scene, metadata]], pose_file="pose.json",
+        bindings_json=json.dumps(probe_config), samples_per_bone=8, confidence_threshold=0.1)
+    plain_sampled = comfy.sample.sample(plain, graph_noise, 2, 4.0,
+        "euler", "normal", plain_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    measured_sampled = comfy.sample.sample(measured, graph_noise, 2, 4.0,
+        "euler", "normal", measured_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    torch.testing.assert_close(measured_sampled, plain_sampled, rtol=0, atol=0)
+    assert probe_rows and all(0 <= row["color_attention_after_bias"] <= 1 for row in probe_rows)
 '''
 
 
