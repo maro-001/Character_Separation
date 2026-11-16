@@ -27,6 +27,35 @@ core = package.core
 
 
 class BoneGraphTests(unittest.TestCase):
+    def test_bias_phrase_resolves_only_unambiguous_aligned_tokens(self):
+        class Clip:
+            def __init__(self, full, part):
+                self.full, self.part = full, part
+
+            def tokenize(self, text):
+                return self.full if text == "full" else self.part
+
+        def tokens(l, g=None):
+            return {name: [[(token, 1.0) for token in ids]]
+                    for name, ids in (("l", l), ("g", l if g is None else g))}
+
+        part = tokens([49406, 12, 13, 49407, 0])
+        full = tokens([49406, 10, 12, 13, 15, 49407, 0])
+        self.assertEqual(graph.resolve_bias_phrase(Clip(full, part), "full", "part"), [2, 3])
+        repeated = tokens([49406, 12, 13, 12, 13, 49407])
+        with self.assertRaisesRegex(ValueError, "exactly once"):
+            graph.resolve_bias_phrase(Clip(repeated, part), "full", "part")
+        mismatch = tokens([49406, 10, 12, 13, 49407], [49406, 12, 13, 10, 49407])
+        with self.assertRaisesRegex(ValueError, "align"):
+            graph.resolve_bias_phrase(Clip(mismatch, part), "full", "part")
+        with self.assertRaisesRegex(ValueError, "exactly once"):
+            graph.resolve_bias_phrase(Clip(tokens([49406, 10, 49407]), part), "full", "part")
+        with self.assertRaisesRegex(ValueError, "nonempty"):
+            graph.resolve_bias_phrase(Clip(full, part), "full", "")
+        embedded = tokens([49406, torch.ones(2, 2), 49407])
+        with self.assertRaisesRegex(ValueError, "custom embedding"):
+            graph.resolve_bias_phrase(Clip(embedded, part), "full", "part")
+
     def bindings(self):
         return [
             {"person": 0, "bone": "right_upper_arm", "joints": (2, 3),
@@ -69,6 +98,31 @@ class BoneGraphTests(unittest.TestCase):
         self.assertFalse(set(plan["owned"][2]).intersection(plan["allowed"][0]))
         self.assertFalse(set(plan["owned"][0]).intersection(plan["allowed"][2]))
 
+    def test_cross_schedule_gate_is_per_binding_and_batch(self):
+        q, k, v, options = self.case()
+        bindings = options["bone_prompt"]["bindings"]
+        bindings[0]["cross_gate"] = torch.tensor([0.0, 1.0], dtype=q.dtype).reshape(2, 1, 1)
+        bindings[1]["cross_gate"] = 0.0
+        bindings[2]["cross_gate"] = 0.0
+        output = graph.graph_cross_attention(q, k, v, options, attention)
+        torch.testing.assert_close(output[0], torch.full_like(output[0], 2))
+        self.assertGreater(output[1].max().item(), 2)
+        bindings[0]["cross_gate"] = 0.0
+        torch.testing.assert_close(graph.graph_cross_attention(q, k, v, options, attention), torch.full_like(q, 2))
+
+    def test_cross_schedule_window_validation(self):
+        prepared = graph.prepare_graph_bindings(self.bindings(), [{"cross_start_percent": 0.2}, {}, {}])
+        self.assertEqual((prepared[0]["cross_start_percent"], prepared[0]["cross_end_percent"]), (0.2, 1.0))
+        for config in ({"cross_start_percent": -0.1}, {"cross_end_percent": 1.1},
+                       {"cross_start_percent": 0.5, "cross_end_percent": 0.5},
+                       {"cross_start_percent": float("nan")}):
+            with self.subTest(config=config), self.assertRaisesRegex(ValueError, "cross_start_percent"):
+                graph.prepare_graph_bindings(self.bindings(), [config, {}, {}])
+        for config in ({"cross_fade": 0.2}, {"cross_start_percent": 0.2, "cross_fade": 0.6},
+                       {"cross_end_percent": 0.8, "cross_fade": float("nan")}):
+            with self.subTest(config=config), self.assertRaisesRegex(ValueError, "cross_fade"):
+                graph.prepare_graph_bindings(self.bindings(), [config, {}, {}])
+
     def test_joint_falloff_reduces_endpoint_weights_without_changing_ownership(self):
         binding = {"person": 0, "bone": "right_upper_arm", "joints": (2, 3),
                    "points": ((0.2, 0.5), (0.8, 0.5)), "radius": 0.04,
@@ -93,6 +147,100 @@ class BoneGraphTests(unittest.TestCase):
         for value in (-0.1, 0.51, float("nan")):
             with self.subTest(value=value), self.assertRaisesRegex(ValueError, "joint_falloff"):
                 graph.prepare_graph_bindings(self.bindings(), [{"joint_falloff": value}, {}, {}])
+
+    def test_focus_concentrates_cross_attention_along_the_bone(self):
+        binding = {"person": 0, "bone": "right_upper_arm", "joints": (2, 3),
+                   "points": ((0.2, 0.5), (0.8, 0.5)), "radius": 0.04,
+                   "overlap_mode": "nearest"}
+        for samples in (1, 4):
+            with self.subTest(samples=samples):
+                plain = graph.build_routes([{**binding, "route_samples": samples}], 32, 32)
+                focused = graph.build_routes([{**binding, "route_samples": samples,
+                                               "focus_position": 0.5, "focus_sigma": 0.2}], 32, 32)
+                indices, weights = focused["spatial"][0]
+                original = dict(zip(*plain["spatial"][0]))
+                self.assertEqual(set(indices), set(original))
+                ratios = {i: w / original[i] for i, w in zip(indices, weights)}
+                middle = max(indices, key=lambda i: ratios[i])
+                edge = min(indices, key=lambda i: ratios[i])
+                self.assertLess(abs((middle % 32 + 0.5) / 32 - 0.5), 0.05)
+                self.assertGreater(ratios[middle], 0.95)
+                self.assertLess(ratios[edge], 0.2)
+                self.assertTrue(all(0 < ratio <= 1 for ratio in ratios.values()))
+
+    def test_focus_configuration_validation(self):
+        prepared = graph.prepare_graph_bindings(self.bindings(), [{"focus_sigma": 0.2}, {}, {}])
+        self.assertEqual((prepared[0]["focus_position"], prepared[0]["focus_sigma"]), (0.5, 0.2))
+        for config in ({"focus_sigma": 0}, {"focus_sigma": float("nan")},
+                       {"focus_sigma": 0.2, "focus_position": 1.1}, {"focus_position": 0.5},
+                       {"focus_gain": 2}, {"focus_sigma": 0.2, "focus_gain": float("inf")},
+                       {"focus_sigma": 0.2, "focus_gain": 0}):
+            with self.subTest(config=config), self.assertRaisesRegex(ValueError, "focus_"):
+                graph.prepare_graph_bindings(self.bindings(), [config, {}, {}])
+        tiny = graph.prepare_graph_bindings(self.bindings(), [{"focus_sigma": 1e-320}, {}, {}])
+        graph.build_routes(tiny, 8, 16)
+
+    def test_focus_gain_restores_weight_without_exceeding_unfocused_route(self):
+        binding = {"person": 0, "bone": "right_upper_arm", "joints": (2, 3),
+                   "points": ((0.2, 0.5), (0.8, 0.5)), "radius": 0.04,
+                   "overlap_mode": "nearest"}
+        for samples in (1, 4):
+            with self.subTest(samples=samples):
+                binding["route_samples"] = samples
+                plain = graph.build_routes([binding], 32, 32)["spatial"][0]
+                focus = {**binding, "focus_position": 0.5, "focus_sigma": 0.2}
+                normal = graph.build_routes([focus], 32, 32)["spatial"][0]
+                boosted = graph.build_routes([{**focus, "focus_gain": 2}], 32, 32)["spatial"][0]
+                plain, normal, boosted = (dict(zip(*item)) for item in (plain, normal, boosted))
+                self.assertEqual(plain.keys(), boosted.keys())
+                self.assertTrue(all(normal[i] <= boosted[i] <= plain[i] for i in boosted))
+                self.assertTrue(any(normal[i] < boosted[i] for i in boosted))
+
+    def test_focus_does_not_transfer_supersampled_ownership_to_other_bones(self):
+        first = {"person": 0, "bone": "right_upper_arm", "joints": (2, 3),
+                 "points": ((0.2, 0.48), (0.8, 0.48)), "radius": 0.07,
+                 "overlap_mode": "nearest", "route_samples": 4}
+        second = {**first, "person": 1, "bone": "left_forearm",
+                  "points": ((0.2, 0.52), (0.8, 0.52))}
+        original = graph.build_routes([first, second], 32, 32)
+        focused = graph.build_routes([{**first, "focus_position": 0.5, "focus_sigma": 0.05}, second], 32, 32)
+        self.assertEqual(original["owned"], focused["owned"])
+        self.assertEqual(original["background"], focused["background"])
+        self.assertNotEqual(original["spatial"][0][1], focused["spatial"][0][1])
+
+    def test_focus_side_prefers_requested_side_and_keeps_ownership(self):
+        binding = {"person": 0, "bone": "right_upper_arm", "joints": (2, 3),
+                   "points": ((0.2, 0.5), (0.8, 0.5)), "radius": 0.1,
+                   "overlap_mode": "nearest", "focus_position": 0.5, "focus_sigma": 0.2}
+        for samples in (1, 4):
+            with self.subTest(samples=samples):
+                binding["route_samples"] = samples
+                plain = graph.build_routes([binding], 32, 32)
+                side = graph.build_routes([{**binding, "focus_side": 0.5, "focus_side_sigma": 0.3}], 32, 32)
+                self.assertEqual(plain["owned"], side["owned"])
+                weights = dict(zip(*side["spatial"][0]))
+                self.assertGreater(weights[18 * 32 + 16], weights[13 * 32 + 16])
+
+    def test_focus_side_configuration_validation(self):
+        config = {"focus_sigma": 0.2, "focus_side": 0.5}
+        prepared = graph.prepare_graph_bindings(self.bindings(), [config, {}, {}])
+        self.assertEqual((prepared[0]["focus_side"], prepared[0]["focus_side_sigma"]), (0.5, 0.5))
+        for invalid in ({"focus_side": 0.5}, {"focus_sigma": 0.2, "focus_side_sigma": 0.2},
+                        {"focus_sigma": 0.2, "focus_side": 2},
+                        {"focus_sigma": 0.2, "focus_side": 0, "focus_side_sigma": 0}):
+            with self.subTest(config=invalid), self.assertRaisesRegex(ValueError, "focus_"):
+                graph.prepare_graph_bindings(self.bindings(), [invalid, {}, {}])
+
+    def test_single_sample_side_uses_configured_radius_not_grid_margin(self):
+        binding = {"person": 0, "bone": "right_upper_arm", "joints": (2, 3),
+                   "points": ((0.2, 0.5), (0.8, 0.5)), "radius": 0.1,
+                   "overlap_mode": "nearest", "focus_position": 0.5, "focus_sigma": 0.2}
+        plain = dict(zip(*graph.build_routes([binding], 32, 32)["spatial"][0]))
+        side = dict(zip(*graph.build_routes([{**binding, "focus_side": 0.5, "focus_side_sigma": 0.3}], 32, 32)["spatial"][0]))
+        index = 18 * 32 + 16
+        signed = ((18 + 0.5) / 32 - 0.5) / binding["radius"]
+        expected = math.exp(-0.5 * ((signed - 0.5) / 0.3) ** 2)
+        self.assertAlmostEqual(side[index] / plain[index], expected)
 
     def test_supersampled_routes_measure_coverage_and_keep_unique_owners(self):
         bindings = self.bindings()
@@ -329,6 +477,133 @@ class BoneGraphTests(unittest.TestCase):
         torch.testing.assert_close(result[:, protected], torch.zeros_like(result[:, protected]), rtol=0, atol=0)
         self.assertGreater(result[:, plan["owned"][2]].max().item(), 0)
 
+    def person_case(self):
+        q, _, _, options = self.case()
+        for binding in options["bone_prompt"]["bindings"]:
+            binding.update(self_attention_scope="person", person_bounds=(0.03, 0.1, 0.48, 0.85)
+                           if binding["person"] == 0 else (0.62, 0.1, 0.97, 0.85))
+            binding["person_segments"] = ((0.08, 0.25, 0.45, 0.25), (0.25, 0.25, 0.25, 0.8)) if binding["person"] == 0 else (
+                (0.65, 0.25, 0.9, 0.25), (0.75, 0.25, 0.75, 0.8))
+            binding["person_torso"] = ()
+        return q, options
+
+    def test_person_bounds_include_unbound_visible_joints_and_ignore_missing_face(self):
+        flat = [0.0] * 54
+        for joint, x, y in ((2, 20, 30), (3, 30, 40), (4, 40, 50), (10, 25, 180)):
+            flat[joint * 3:joint * 3 + 3] = [x, y, 1]
+        bindings = [{"person": 0}]
+        graph.attach_person_geometry(bindings, {"canvas_width": 100, "canvas_height": 200,
+                                             "people": [{"pose_keypoints_2d": flat}]}, 0.1)
+        self.assertEqual(bindings[0]["person_bounds"], (0.2, 0.15, 0.4, 0.9))
+        self.assertIn((0.3, 0.2, 0.4, 0.25), bindings[0]["person_segments"])
+
+    def test_target_person_read_protects_unbound_visible_person(self):
+        q, _, _, options = self.case()
+        binding = options["bone_prompt"]["bindings"][0]
+        binding.update(self_attention_scope="target_person_read", isolate_self_attention=True, radius=0.08)
+        options["bone_prompt"]["bindings"] = [binding]
+        left, right = [0.0] * 54, [0.0] * 54
+        for joint, x, y in ((2, 8, 25), (3, 25, 25), (4, 45, 25)):
+            left[joint * 3:joint * 3 + 3] = [x, y, 1]
+        for joint, x, y in ((6, 65, 25), (7, 90, 25)):
+            right[joint * 3:joint * 3 + 3] = [x, y, 1]
+        pose = {"canvas_width": 100, "canvas_height": 100,
+                "people": [{"pose_keypoints_2d": left}, {"pose_keypoints_2d": right}]}
+        graph.attach_person_geometry([binding], pose, 0.1, include_unbound=True)
+        groups = graph.build_person_regions([binding], 8, 16)
+        self.assertTrue(groups[1])
+        k, v = torch.zeros_like(q), torch.zeros_like(q)
+        v[:, groups[1]] = 10
+        target = graph.build_routes([binding], 8, 16)["owned"][0]
+        result = graph.graph_self_attention(q, k, v, options, attention)
+        torch.testing.assert_close(result[:, target], torch.zeros_like(result[:, target]))
+        binding.pop("unbound_person_geometry")
+        options["bone_prompt"]["route_cache"] = {}
+        unprotected = graph.graph_self_attention(q, k, v, options, attention)
+        self.assertGreater(unprotected[:, target].min().item(), 0)
+        partial = [0.0] * 54
+        partial[7 * 3:7 * 3 + 3] = [82, 18.75, 1]
+        pose["people"][1]["pose_keypoints_2d"] = partial
+        graph.attach_person_geometry([binding], pose, 0.1, include_unbound=True)
+        partial_groups = graph.build_person_regions([binding], 8, 16)
+        self.assertTrue(partial_groups[1])
+        self.assertTrue(set(partial_groups[1]).issubset(set(range(128)) - set(partial_groups[-1])))
+
+    def test_person_regions_cover_every_cell_and_do_not_depend_on_binding_order(self):
+        _, options = self.person_case()
+        bindings = options["bone_prompt"]["bindings"]
+        for binding in bindings:
+            binding["person_bounds"] = (0.2, 0.1, 0.8, 0.85)
+        groups = graph.build_person_regions(bindings, 8, 16)
+        self.assertEqual(groups, graph.build_person_regions(bindings[::-1], 8, 16))
+        indices = [index for group in groups for index in group]
+        self.assertEqual(sorted(indices), list(range(128)))
+        self.assertEqual(len(indices), len(set(indices)))
+        self.assertTrue(all(groups))
+
+    def test_person_attention_blocks_other_people_and_background_but_keeps_body_context(self):
+        q, options = self.person_case()
+        k, v = torch.zeros_like(q), torch.zeros_like(q)
+        groups = graph.build_person_regions(options["bone_prompt"]["bindings"], 8, 16)
+        v[:, groups[0]] = 3
+        v[:, groups[1]] = 7
+        v[:, groups[2]] = 11
+        expected = graph.graph_self_attention(q, k, v, options, attention)
+        for group in groups[:2]:
+            torch.testing.assert_close(expected[:, group], v[:, group], rtol=0, atol=1e-12)
+        torch.testing.assert_close(expected[:, groups[2]], attention(q, k, v, 2)[:, groups[2]], rtol=0, atol=0)
+        changed = v.clone()
+        changed[:, groups[1] + groups[2]] += 100
+        actual = graph.graph_self_attention(q, k, changed, options, attention)
+        torch.testing.assert_close(actual[:, groups[0]], expected[:, groups[0]], rtol=0, atol=0)
+        # A body cell outside the prompted arm still contributes to that person's arm queries.
+        tubes = graph.build_routes(options["bone_prompt"]["bindings"], 8, 16)["owned"]
+        body_cell = next(index for index in groups[0] if index not in tubes[0] + tubes[1])
+        changed = v.clone()
+        changed[:, body_cell] += 100
+        actual = graph.graph_self_attention(q, k, changed, options, attention)
+        self.assertGreater(actual[:, tubes[0]].min().item(), expected[:, tubes[0]].max().item())
+        torch.testing.assert_close(actual[:, groups[1]], expected[:, groups[1]], rtol=0, atol=0)
+
+    def test_person_regions_use_full_skeleton_and_torso_without_claiming_box_background(self):
+        _, options = self.person_case()
+        bindings = options["bone_prompt"]["bindings"]
+        torso = ((0.15, 0.3), (0.35, 0.3), (0.35, 0.6), (0.15, 0.6))
+        for binding in bindings[:2]:
+            binding["person_torso"] = torso
+        groups = graph.build_person_regions(bindings, 40, 40)
+        self.assertIn(19 * 40 + 9, groups[0])  # Interior of the filled torso, away from the arm.
+        self.assertIn(28 * 40 + 16, groups[-1])  # Air inside the person bounding box stays background.
+        changed_prompt = [{**bindings[0], "points": ((0.1, 0.2), (0.2, 0.2))}, bindings[2]]
+        self.assertEqual(graph.build_person_regions(changed_prompt, 40, 40), groups)
+
+    def test_person_attention_respects_strength_batch_gate_and_half_precision(self):
+        for dtype in (torch.float64, torch.float32, torch.float16):
+            with self.subTest(dtype=dtype):
+                q, options = self.person_case()
+                q = q.to(dtype)
+                k, v = torch.zeros_like(q), torch.randn_like(q)
+                native = attention(q, k, v, 2)
+                isolated = graph.graph_self_attention(q, k, v, options, attention)
+                for binding in options["bone_prompt"]["bindings"]:
+                    binding.update(self_attention_strength=0.25, gate=q.new_tensor([0, 1]).reshape(2, 1, 1))
+                actual = graph.graph_self_attention(q, k, v, options, attention)
+                self.assertEqual(actual.dtype, dtype)
+                self.assertTrue(torch.isfinite(actual).all())
+                torch.testing.assert_close(actual[0], native[0], rtol=0, atol=0)
+                torch.testing.assert_close(actual[1], native[1] + 0.25 * (isolated[1] - native[1]))
+                for binding in options["bone_prompt"]["bindings"]:
+                    binding["self_attention_strength"] = 0
+                torch.testing.assert_close(graph.graph_self_attention(q, k, v, options, attention), native, rtol=0, atol=0)
+
+    def test_person_scope_is_validated_and_legacy_default_is_preserved(self):
+        legacy = graph.prepare_graph_bindings(self.bindings(), [{}, {}, {}])
+        self.assertTrue(all(binding["self_attention_scope"] == "neighbors" for binding in legacy))
+        prepared = graph.prepare_graph_bindings(self.bindings(), [{"self_attention_scope": "person"}] * 3)
+        self.assertTrue(all(binding["self_attention_scope"] == "person" for binding in prepared))
+        with self.assertRaisesRegex(ValueError, "share"):
+            graph.prepare_graph_bindings(self.bindings(), [{"self_attention_scope": "person"}, {}, {}])
+
     def test_reference_contrast_calibrates_magnitude_and_preserves_native_scene(self):
         q, k, v, options = self.case()
         bindings = options["bone_prompt"]["bindings"]
@@ -369,6 +644,38 @@ class BoneGraphTests(unittest.TestCase):
         actual = graph.graph_cross_attention(q, k, v, options, attention)
         self.assertGreater((actual - 2).max().item(), 0)
         self.assertLessEqual((actual - 2).abs().max().item(), 4 * 0.001 * 0.8 + 1e-12)
+        for binding in options["bone_prompt"]["bindings"]:
+            binding["delta_gain_limit"] = 16
+        boosted = graph.graph_cross_attention(q, k, v, options, attention)
+        torch.testing.assert_close(boosted - 2, 4 * (actual - 2))
+        self.assertLessEqual((boosted - 2).abs().max().item(), 2 * 0.8)
+
+    def test_delta_gain_limit_requires_reference_and_positive_finite_value(self):
+        for config in ({"delta_gain_limit": 2},
+                       {"reference_binding": [0, "right_forearm"], "delta_gain_limit": 0},
+                       {"reference_binding": [0, "right_forearm"], "delta_gain_limit": float("inf")}):
+            with self.subTest(config=config), self.assertRaisesRegex(ValueError, "delta_gain_limit"):
+                graph.prepare_graph_bindings(self.bindings(), [config, {}, {}])
+
+    def test_half_precision_rms_does_not_underflow_or_overflow(self):
+        for dtype in (torch.float16, torch.bfloat16):
+            for value in (0.0001, 1000.0):
+                with self.subTest(dtype=dtype, value=value):
+                    values = torch.full((1, 4), value, dtype=dtype)
+                    result = graph._rms(values)
+                    torch.testing.assert_close(result, values.float().abs().mean(-1, keepdim=True))
+                    self.assertTrue(torch.isfinite(result).all())
+        q, k, v, options = self.case()
+        q, k, v = q.half(), k.half(), v.half()
+        v[:, :2], v[:, 2:4], v[:, 4] = 0.001, 0.0001, 0
+        for binding in options["bone_prompt"]["bindings"]:
+            binding.update(reference_start=2, reference_end=3, reference_token_bias=0,
+                           reference_token_bias_indices=[], delta_scale=0.1)
+        actual = graph.graph_cross_attention(q, k, v, options, attention)
+        difference = (actual.float() - float(v[0, 0, 0])).abs()
+        self.assertGreater(difference.max().item(), 0)
+        self.assertLessEqual(difference.max().item(), 0.000101)
+        self.assertEqual(actual.dtype, torch.float16)
 
     def test_target_reference_attention_ignores_reference_keys_but_responds_to_target_queries(self):
         q, k, v, options = self.case()
@@ -403,6 +710,80 @@ class BoneGraphTests(unittest.TestCase):
         torch.testing.assert_close(graph.graph_cross_attention(torch.ones_like(q), k, v, options, attention),
                                    torch.full_like(q, 2), rtol=0, atol=0)
 
+    def test_target_reference_delta_can_select_value_tokens(self):
+        q, _, _, options = self.case()
+        binding = options["bone_prompt"]["bindings"][0]
+        options["bone_prompt"].update(bindings=[binding], bone_tokens=4)
+        binding.update(start=0, end=2, reference_start=2, reference_end=4,
+                       reference_attention="target", reference_delta_tokens=[0], delta_scale=10)
+        k = q.new_zeros((2, 6, 4))
+        v = k.clone()
+        v[:, :2] = 2
+        v[:, 2], v[:, 3], v[:, 4], v[:, 5] = 4, 6, 3, 7
+        selected = graph.graph_cross_attention(q, k, v, options, attention)
+        self.assertGreater(selected.max().item(), 2)
+        changed = v.clone()
+        changed[:, 3], changed[:, 5] = 100, -100
+        torch.testing.assert_close(graph.graph_cross_attention(q, k, changed, options, attention), selected)
+        changed[:, 2] += 1
+        self.assertGreater(graph.graph_cross_attention(q, k, changed, options, attention).max().item(), selected.max().item())
+        binding["reference_delta_normalization"] = "selected"
+        normalized = graph.graph_cross_attention(q, k, v, options, attention)
+        torch.testing.assert_close(normalized - 2, 2 * (selected - 2))
+        altered_keys = k.clone()
+        altered_keys[:, 3] = 100
+        torch.testing.assert_close(graph.graph_cross_attention(torch.ones_like(q), altered_keys, v, options, attention),
+                                   graph.graph_cross_attention(torch.ones_like(q), k, v, options, attention))
+
+    def test_reference_delta_tokens_require_valid_target_reference(self):
+        for config in ({"reference_delta_tokens": [0]},
+                       {"reference_binding": [0, "right_forearm"], "reference_delta_tokens": [0]},
+                       {"reference_binding": [0, "right_forearm"], "reference_attention": "target", "reference_delta_tokens": []},
+                       {"reference_binding": [0, "right_forearm"], "reference_attention": "target", "reference_delta_tokens": [1, 1]}):
+            with self.subTest(config=config), self.assertRaisesRegex(ValueError, "reference_delta_tokens"):
+                graph.prepare_graph_bindings(self.bindings(), [config, {}, {}])
+        with self.assertRaisesRegex(ValueError, "reference_delta_normalization"):
+            graph.prepare_graph_bindings(self.bindings(), [{"reference_delta_normalization": "selected"}, {}, {}])
+
+    def test_reference_baseline_uses_selected_reference_tokens(self):
+        q, _, _, options = self.case()
+        binding = options["bone_prompt"]["bindings"][0]
+        options["bone_prompt"].update(bindings=[binding], bone_tokens=4)
+        binding.update(start=0, end=2, reference_start=2, reference_end=4,
+                       reference_attention="target", reference_delta_tokens=[0],
+                       reference_delta_normalization="selected", reference_baseline_tokens=[0], delta_scale=10)
+        k = q.new_zeros((2, 6, 4))
+        v = k.clone()
+        v[:, :2] = 2
+        v[:, 2], v[:, 3], v[:, 4], v[:, 5] = 4, 6, 3, 7
+        output = graph.graph_cross_attention(q, k, v, options, attention)
+        changed = v.clone()
+        changed[:, 5] = 100
+        torch.testing.assert_close(graph.graph_cross_attention(q, k, changed, options, attention), output)
+        changed[:, 4] = 4
+        torch.testing.assert_close(graph.graph_cross_attention(q, k, changed, options, attention), torch.full_like(q, 2))
+        for config in ({"reference_baseline_tokens": [0]},
+                       {"reference_binding": [0, "right_forearm"], "reference_baseline_tokens": [0]},
+                       {"reference_binding": [0, "right_forearm"], "reference_attention": "target", "reference_baseline_tokens": []}):
+            with self.subTest(config=config), self.assertRaisesRegex(ValueError, "reference_baseline_tokens"):
+                graph.prepare_graph_bindings(self.bindings(), [config, {}, {}])
+
+    def test_reference_baseline_supports_different_context_lengths(self):
+        q, _, _, options = self.case()
+        binding = options["bone_prompt"]["bindings"][0]
+        options["bone_prompt"].update(bindings=[binding], bone_tokens=5)
+        binding.update(start=0, end=2, reference_start=2, reference_end=5,
+                       reference_attention="target", reference_delta_tokens=[0],
+                       reference_delta_normalization="selected", reference_baseline_tokens=[0, 2], delta_scale=10)
+        k = q.new_zeros((2, 7, 4))
+        v = k.clone()
+        v[:, :2] = 2
+        v[:, 2], v[:, 4], v[:, 6] = 4, 2, 4
+        output = graph.graph_cross_attention(q, k, v, options, attention)
+        self.assertGreater(output.max().item(), 2)
+        v[:, 4], v[:, 6] = 4, 4
+        torch.testing.assert_close(graph.graph_cross_attention(q, k, v, options, attention), torch.full_like(q, 2))
+
     def test_soft_self_attention_preserves_background_and_blends_with_native(self):
         q, _, _, options = self.case()
         k, v = torch.randn_like(q), torch.randn_like(q)
@@ -418,6 +799,141 @@ class BoneGraphTests(unittest.TestCase):
             binding["self_attention_strength"] = 0
         torch.testing.assert_close(graph.graph_self_attention(q, k, v, options, attention), native, rtol=0, atol=0)
 
+    def test_target_self_attention_blocks_direct_transfer_and_preserves_other_context(self):
+        q, _, _, options = self.case()
+        bindings = options["bone_prompt"]["bindings"]
+        for binding in bindings:
+            binding["self_attention_scope"] = "target"
+        bindings[0]["isolate_self_attention"] = True
+        routes = graph.build_routes(bindings, 8, 16)
+        target = routes["owned"][0]
+        other = routes["owned"][1]
+        self.assertTrue(target and other)
+        k, v = torch.zeros_like(q), torch.zeros_like(q)
+        v[:, target] = 10
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        torch.testing.assert_close(output[:, target], torch.full_like(output[:, target], 10))
+        torch.testing.assert_close(output[:, other], torch.zeros_like(output[:, other]))
+        bindings[0]["self_attention_strength"] = 0.25
+        blended = graph.graph_self_attention(q, k, v, options, attention)
+        native = attention(q, k, v, 2)
+        torch.testing.assert_close(blended, native + 0.25 * (output - native))
+        bindings[0]["self_attention_strength"] = 1
+        v[:, target] = 0
+        v[:, other] = 10
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        torch.testing.assert_close(output[:, target], torch.zeros_like(output[:, target]))
+        self.assertGreater(output[:, list(routes["background"])].max().item(), 0)
+        bindings[1]["isolate_self_attention"] = True
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        torch.testing.assert_close(output[:, target], torch.zeros_like(output[:, target]))
+        torch.testing.assert_close(output[:, other], torch.full_like(output[:, other], 10))
+        torch.testing.assert_close(output[:, list(routes["background"])],
+                                   torch.zeros_like(output[:, list(routes["background"])]))
+        bindings[0]["isolate_self_attention"] = False
+        bindings[1]["isolate_self_attention"] = False
+        torch.testing.assert_close(graph.graph_self_attention(q, k, v, options, attention),
+                                   attention(q, k, v, 2))
+
+    def test_target_isolation_configuration(self):
+        config = [{"self_attention_scope": "target", "isolate_self_attention": i == 0}
+                  for i in range(3)]
+        prepared = graph.prepare_graph_bindings(self.bindings(), config)
+        self.assertEqual([binding["isolate_self_attention"] for binding in prepared], [True, False, False])
+        config[0]["isolate_self_attention"] = 1
+        with self.assertRaisesRegex(ValueError, "isolate_self_attention"):
+            graph.prepare_graph_bindings(self.bindings(), config)
+
+    def test_target_read_blocks_outgoing_values_but_keeps_target_context(self):
+        q, _, _, options = self.case()
+        bindings = options["bone_prompt"]["bindings"]
+        for binding in bindings:
+            binding["self_attention_scope"] = "target_read"
+        bindings[0]["isolate_self_attention"] = True
+        routes = graph.build_routes(bindings, 8, 16)
+        target = routes["owned"][0]
+        rest = routes["owned"][1] + list(routes["background"])
+        k, v = torch.zeros_like(q), torch.zeros_like(q)
+        v[:, target] = 10
+        native = attention(q, k, v, 2)
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        torch.testing.assert_close(output[:, target], native[:, target])
+        torch.testing.assert_close(output[:, rest], torch.zeros_like(output[:, rest]))
+        v[:, target] = 0
+        v[:, routes["owned"][1]] = 10
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        self.assertGreater(output[:, target].min().item(), 0)
+
+    def test_target_person_read_excludes_other_person_but_keeps_own_context(self):
+        q, _, _, options = self.case()
+        bindings = options["bone_prompt"]["bindings"]
+        for binding in bindings:
+            binding["self_attention_scope"] = "target_person_read"
+        bindings[0]["isolate_self_attention"] = True
+        routes = graph.build_routes(bindings, 8, 16)
+        own = [i for i in range(128) if i % 16 < 8]
+        other = [i for i in range(128) if i % 16 >= 8]
+        routes["person_groups"] = [own, other, []]
+        options["bone_prompt"]["route_cache"] = {(8, 16): routes}
+        target = routes["owned"][0]
+        self.assertTrue(set(target).issubset(own))
+        k, v = torch.zeros_like(q), torch.zeros_like(q)
+        v[:, other] = 10
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        torch.testing.assert_close(output[:, target], torch.zeros_like(output[:, target]))
+        v[:, other] = 0
+        v[:, routes["owned"][1]] = 10
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        self.assertGreater(output[:, target].min().item(), 0)
+
+    def test_target_person_read_can_exclude_background_per_binding(self):
+        q, _, _, options = self.case()
+        bindings = options["bone_prompt"]["bindings"]
+        for binding in bindings:
+            binding["self_attention_scope"] = "target_person_read"
+        bindings[0]["isolate_self_attention"] = True
+        routes = graph.build_routes(bindings, 8, 16)
+        own = [i for i in range(128) if i % 16 < 6]
+        other = [i for i in range(128) if i % 16 >= 10]
+        background = [i for i in range(128) if 6 <= i % 16 < 10]
+        routes["person_groups"] = [own, other, background]
+        options["bone_prompt"]["route_cache"] = {(8, 16): routes}
+        target = routes["owned"][0]
+        k, v = torch.zeros_like(q), torch.zeros_like(q)
+        v[:, background] = 10
+        self.assertGreater(graph.graph_self_attention(q, k, v, options, attention)[:, target].min().item(), 0)
+        bindings[0]["person_read_background"] = False
+        torch.testing.assert_close(graph.graph_self_attention(q, k, v, options, attention)[:, target],
+                                   torch.zeros_like(q[:, target]))
+        with self.assertRaisesRegex(ValueError, "person_read_background"):
+            graph.prepare_graph_bindings(self.bindings(), [{"person_read_background": 1}, {}, {}])
+
+    def test_isolation_threshold_limits_protection_to_focused_owned_cells(self):
+        q, _, _, options = self.case()
+        bindings = options["bone_prompt"]["bindings"]
+        for binding in bindings:
+            binding["self_attention_scope"] = "target_read"
+        bindings[0].update(isolate_self_attention=True, focus_position=0.5, focus_sigma=0.2)
+        routes = graph.build_routes(bindings, 8, 16)
+        weights = dict(zip(*routes["spatial"][0]))
+        eligible = [weights[i] for i in routes["owned"][0]]
+        threshold = (min(eligible) + max(eligible)) / 2
+        bindings[0]["isolation_min_weight"] = threshold
+        selected = [i for i in routes["owned"][0] if weights[i] >= threshold]
+        excluded = [i for i in routes["owned"][0] if weights[i] < threshold]
+        self.assertTrue(selected and excluded)
+        k, v = torch.zeros_like(q), torch.zeros_like(q)
+        v[:, selected] = 10
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        torch.testing.assert_close(output[:, excluded], torch.zeros_like(output[:, excluded]))
+        v[:, selected], v[:, excluded] = 0, 10
+        output = graph.graph_self_attention(q, k, v, options, attention)
+        self.assertGreater(output[:, list(routes["background"])].min().item(), 0)
+
+    def test_isolation_threshold_validation(self):
+        for threshold in (-0.1, 1.1, float("nan")):
+            with self.subTest(value=threshold), self.assertRaisesRegex(ValueError, "isolation_min_weight"):
+                graph.prepare_graph_bindings(self.bindings(), [{"isolation_min_weight": threshold}, {}, {}])
     def test_partition_self_attention_blocks_copy_between_every_bone_and_background(self):
         q, _, _, options = self.case()
         bindings = options["bone_prompt"]["bindings"]

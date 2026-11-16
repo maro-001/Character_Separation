@@ -403,6 +403,17 @@ import comfy.supported_models_base
 from comfy.ldm.modules.attention import BasicTransformerBlock
 from custom_nodes import bone_prompt
 
+gate = bone_prompt._cross_gate(torch.tensor([9.0, 8.0, 7.25, 6.0, 2.75, 2.0, 1.0]),
+                               {"cross_start_sigma": 8.0, "cross_end_sigma": 2.0, "cross_fade": 0.25})
+torch.testing.assert_close(gate.flatten(), torch.tensor([0.0, 0.0, 0.5, 1.0, 0.5, 0.0, 0.0]))
+hard = bone_prompt._cross_gate(torch.tensor([9.0, 8.0, 2.0, 1.0]),
+                               {"cross_start_sigma": 8.0, "cross_end_sigma": 2.0})
+assert hard.flatten().tolist() == [False, True, True, False]
+full_start = bone_prompt._cross_gate(torch.tensor([10.0, 9.0, 8.0, 2.0]),
+                                    {"cross_start_sigma": 999999999.9, "cross_end_sigma": 2.0,
+                                     "cross_fade_start_sigma": 10.0, "cross_fade": 0.25})
+torch.testing.assert_close(full_start.flatten(), torch.tensor([0.0, 0.5, 1.0, 0.0]))
+
 torch.manual_seed(7)
 layer = BasicTransformerBlock(8, 2, 4, context_dim=2048, operations=torch.nn)
 x = torch.randn(1, 8, 8)
@@ -664,19 +675,53 @@ with TemporaryDirectory() as directory, patch.object(bone_prompt.folder_paths, "
         "euler", "normal", contrast_positive, graph_negative,
         torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
     assert torch.isfinite(contrast_sampled).all()
-    target_config = [{**binding, "reference_attention": "target"} for binding in contrast_config]
+    target_config = [{**binding, "reference_attention": "target",
+                      **({"reference_delta_tokens": [0], "reference_delta_normalization": "selected",
+                          "reference_baseline_tokens": [0], "delta_gain_limit": 8.0} if index == 0 else {})}
+                     for index, binding in enumerate(contrast_config)]
     target_patched, target_positive = bone_prompt.BonePromptInject().inject(
         patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(target_config), 8, 0.1)
     target_layout = target_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
     assert all(item["reference_attention"] == "target" for item in target_layout)
+    assert target_layout[0]["reference_delta_tokens"] == [0]
+    assert target_layout[0]["reference_delta_normalization"] == "selected"
+    assert target_layout[0]["reference_baseline_tokens"] == [0]
+    assert target_layout[0]["delta_gain_limit"] == 8.0
+    try:
+        bone_prompt.BonePromptInject().inject(patcher, graph_clip, [[scene, metadata]],
+            "pose.json", json.dumps([{**binding, "reference_delta_tokens": [999]} if index == 0 else binding
+                                     for index, binding in enumerate(target_config)]), 8, 0.1)
+    except ValueError as error:
+        assert "reference_delta_tokens exceed" in str(error)
+    else:
+        raise AssertionError("Out-of-range reference delta token was silently accepted")
+    try:
+        bone_prompt.BonePromptInject().inject(patcher, graph_clip, [[scene, metadata]],
+            "pose.json", json.dumps([{**binding, "reference_baseline_tokens": [999]} if index == 0 else binding
+                                     for index, binding in enumerate(target_config)]), 8, 0.1)
+    except ValueError as error:
+        assert "reference_baseline_tokens exceed" in str(error)
+    else:
+        raise AssertionError("Out-of-range reference baseline token was silently accepted")
     target_sampled = comfy.sample.sample(target_patched, graph_noise, 2, 4.0,
         "euler", "normal", target_positive, graph_negative,
         torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
     assert torch.isfinite(target_sampled).all()
+    unequal_config = [{**binding, "token_indices": [0], "token_bias_indices": [0]} if index == 0 else binding
+                      for index, binding in enumerate(target_config)]
+    unequal_model, unequal_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(unequal_config), 8, 0.1)
+    unequal_layout = unequal_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond[0]
+    assert unequal_layout["end"] - unequal_layout["start"] != unequal_layout["reference_end"] - unequal_layout["reference_start"]
+    unequal_sampled = comfy.sample.sample(unequal_model, graph_noise, 2, 4.0,
+        "euler", "normal", unequal_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(unequal_sampled).all()
+    no_baseline = [{key: value for key, value in binding.items() if key != "reference_baseline_tokens"}
+                   if index == 0 else binding for index, binding in enumerate(unequal_config)]
     try:
         bone_prompt.BonePromptInject().inject(patcher, graph_clip, [[scene, metadata]],
-            "pose.json", json.dumps([{**binding, "token_indices": [0], "token_bias_indices": [0]} if index == 0 else binding
-                                      for index, binding in enumerate(target_config)]), 8, 0.1)
+            "pose.json", json.dumps(no_baseline), 8, 0.1)
     except ValueError as error:
         assert "equal target/reference context lengths" in str(error)
     else:
@@ -693,6 +738,68 @@ with TemporaryDirectory() as directory, patch.object(bone_prompt.folder_paths, "
         "euler", "normal", partition_positive, graph_negative,
         torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
     assert torch.isfinite(partition_sampled).all()
+    person_config = [{**binding, "self_attention_scope": "person", "self_attention_strength": 0.35}
+                     for binding in contrast_config]
+    person_model, person_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(person_config), 8, 0.1)
+    person_layout = person_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert all(item["self_attention_scope"] == "person" and len(item["person_bounds"]) == 4
+               for item in person_layout)
+    assert person_layout[0]["person_bounds"] != person_layout[10]["person_bounds"]
+    person_sampled = comfy.sample.sample(person_model, graph_noise, 2, 4.0,
+        "euler", "normal", person_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(person_sampled).all()
+    target_isolation_config = [{**binding, "self_attention_scope": "target", "self_attention_strength": 0.25,
+                                "isolate_self_attention": index == 0,
+                                "isolation_min_weight": 0.2 if index == 0 else 0,
+                                **({"focus_sigma": 0.2, "focus_position": 0.4, "focus_gain": 2.0,
+                                    "focus_side": 0.5, "focus_side_sigma": 0.3,
+                                    "cross_start_percent": 0.0, "cross_end_percent": 0.8,
+                                    "cross_fade": 0.2} if index == 0 else {})}
+                               for index, binding in enumerate(contrast_config)]
+    isolation_model, isolation_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(target_isolation_config), 8, 0.1)
+    isolation_layout = isolation_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert [item["isolate_self_attention"] for item in isolation_layout] == [True] + [False] * (len(isolation_layout) - 1)
+    assert isolation_layout[0]["isolation_min_weight"] == 0.2
+    assert isolation_layout[0]["cross_start_sigma"] >= isolation_layout[0]["cross_end_sigma"]
+    assert isolation_layout[0]["cross_fade"] == 0.2
+    assert isolation_layout[0]["cross_fade_start_sigma"] < isolation_layout[0]["cross_start_sigma"]
+    assert (isolation_layout[0]["focus_sigma"], isolation_layout[0]["focus_position"]) == (0.2, 0.4)
+    assert isolation_layout[0]["focus_gain"] == 2.0
+    assert (isolation_layout[0]["focus_side"], isolation_layout[0]["focus_side_sigma"]) == (0.5, 0.3)
+    isolation_sampled = comfy.sample.sample(isolation_model, graph_noise, 2, 4.0,
+        "euler", "normal", isolation_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(isolation_sampled).all()
+    read_config = [{**binding, "self_attention_scope": "target_read"} for binding in target_isolation_config]
+    read_model, read_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(read_config), 8, 0.1)
+    read_sampled = comfy.sample.sample(read_model, graph_noise, 2, 4.0,
+        "euler", "normal", read_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(read_sampled).all()
+    person_read_config = [{**binding, "self_attention_scope": "target_person_read", "person_read_background": index != 0}
+                          for index, binding in enumerate(target_isolation_config)]
+    person_read_model, person_read_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(person_read_config), 8, 0.1)
+    person_read_layout = person_read_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert all(len(item["person_bounds"]) == 4 for item in person_read_layout)
+    assert person_read_layout[0]["person_read_background"] is False
+    person_read_sampled = comfy.sample.sample(person_read_model, graph_noise, 2, 4.0,
+        "euler", "normal", person_read_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(person_read_sampled).all()
+    one_person_config = [binding for binding in person_read_config if binding["person"] == 0]
+    one_person_model, one_person_positive = bone_prompt.BonePromptInject().inject(
+        patcher, graph_clip, [[scene, metadata]], "pose.json", json.dumps(one_person_config), 8, 0.1)
+    one_person_layout = one_person_positive[0][1]["model_conds"][bone_prompt.LAYOUT_KEY].cond
+    assert [person["person"] for person in one_person_layout[0]["unbound_person_geometry"]] == [1]
+    one_person_sampled = comfy.sample.sample(one_person_model, graph_noise, 2, 4.0,
+        "euler", "normal", one_person_positive, graph_negative,
+        torch.zeros(1, 4, 8, 8), disable_pbar=True, seed=7)
+    assert torch.isfinite(one_person_sampled).all()
     for fields in ({"token_bias_indices": [2]}, {"token_indices": [1], "token_bias_indices": [1]}):
         try:
             bone_prompt.BonePromptInject().inject(patcher, graph_clip, [[scene, metadata]],

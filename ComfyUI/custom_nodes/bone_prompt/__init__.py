@@ -10,7 +10,7 @@ from comfy.patcher_extension import WrappersMP
 import folder_paths
 
 from .core import inject_attention, isolate_self_attention, resolve_bindings
-from .graph import graph_cross_attention, graph_self_attention, prepare_graph_bindings
+from .graph import attach_person_geometry, graph_cross_attention, graph_self_attention, prepare_graph_bindings, resolve_bias_phrase
 
 
 LAYOUT_KEY = "bone_prompt_layout"
@@ -96,6 +96,20 @@ def _align_reference_and_detect_attributes(t_tokens, r_tokens, e_target, e_ref):
     return aligned, attr_indices
 
 
+def _cross_gate(t, binding):
+    start, end = binding["cross_start_sigma"], binding["cross_end_sigma"]
+    gate = (t <= start) & (t >= end)
+    fade = binding.get("cross_fade", 0.0)
+    fade_start = binding.get("cross_fade_start_sigma", start)
+    width = (fade_start - end) * fade
+    if width > 0:
+        enter = ((fade_start - t) / width).clamp(0, 1)
+        leave = ((t - end) / width).clamp(0, 1)
+        weight = torch.minimum(enter, leave)
+        gate = weight * weight * (3 - 2 * weight)
+    return gate.reshape(-1, 1, 1)
+
+
 def apply_bone_context(executor, x, t, c_concat=None, c_crossattn=None, control=None, transformer_options=None, **kwargs):
     layout = kwargs.pop(LAYOUT_KEY, None)
     embeddings = kwargs.pop(EMBEDDING_KEY, None)
@@ -106,6 +120,8 @@ def apply_bone_context(executor, x, t, c_concat=None, c_crossattn=None, control=
             item = binding.copy()
             if "start_sigma" in binding:
                 item["gate"] = ((t <= binding["start_sigma"]) & (t >= binding["end_sigma"])).reshape(-1, 1, 1)
+            if "cross_start_sigma" in binding:
+                item["cross_gate"] = _cross_gate(t, binding)
             bindings.append(item)
         transformer_options["bone_prompt"] = {
             "base_tokens": c_crossattn.shape[1],
@@ -245,23 +261,31 @@ def encode_graph_bindings(clip, conditioning, bindings):
         layout = []
         for binding, context in zip(bindings, contexts):
             item = {key: binding[key] for key in (
-                "person", "bone", "points", "strength", "radius", "joint_falloff", "route_samples", "joints", "routing_mode",
-                "min_grid_size", "block_types", "start_sigma", "end_sigma", "self_attention_strength",
-                "self_attention_scope",
+                "person", "bone", "points", "strength", "radius", "joint_falloff", "focus_sigma", "focus_position", "focus_gain", "focus_side", "focus_side_sigma", "route_samples", "joints", "routing_mode",
+                "min_grid_size", "block_types", "start_sigma", "end_sigma", "cross_start_sigma", "cross_end_sigma", "cross_fade", "cross_fade_start_sigma", "self_attention_strength",
+                "self_attention_scope", "isolate_self_attention", "isolation_min_weight", "person_read_background",
+                "person_bounds",
+                "person_segments", "person_torso", "unbound_person_geometry",
                 "overlap_mode",
                 "token_bias", "token_bias_indices",
-                "delta_scale",
-                "reference_attention",
+                "delta_scale", "delta_gain_limit",
+                "reference_attention", "reference_delta_tokens", "reference_delta_normalization", "reference_baseline_tokens",
             ) if key in binding}
             item["start"], item["end"] = spans[context]
             if "token_bias_indices" in item and max(item["token_bias_indices"]) >= item["end"] - item["start"]:
                 raise ValueError("Graph token_bias_indices exceed the attended context length after token selection.")
+            if "reference_delta_tokens" in item and max(item["reference_delta_tokens"]) >= item["end"] - item["start"]:
+                raise ValueError("Graph reference_delta_tokens exceed the attended context length after token selection.")
             if "reference_binding" in binding:
                 reference, ref_context = by_identity[binding["reference_binding"]]
                 item["reference_start"], item["reference_end"] = spans[ref_context]
+                if ("reference_baseline_tokens" in item
+                        and max(item["reference_baseline_tokens"]) >= item["reference_end"] - item["reference_start"]):
+                    raise ValueError("Graph reference_baseline_tokens exceed the reference context length.")
                 item["reference_token_bias"] = reference.get("token_bias", 0)
                 item["reference_token_bias_indices"] = reference.get("token_bias_indices", []).copy()
                 if (item["reference_attention"] == "target"
+                        and "reference_baseline_tokens" not in item
                         and item["end"] - item["start"] != item["reference_end"] - item["reference_start"]):
                     raise ValueError("Graph target reference_attention requires equal target/reference context lengths.")
             layout.append(item)
@@ -295,7 +319,7 @@ class BonePromptInject:
     RETURN_NAMES = ("model", "positive")
     FUNCTION = "inject"
     CATEGORY = "model/patch/unet"
-    DESCRIPTION = "Experimental training-free SDXL bone conditioning. routing_mode=graph (graph_v3) directly blends each bone's text attention at local queries and normalizes overlaps. Identical contexts batch local queries (grouped_contexts_v1), preserving per-bone weights and gates. overlap_mode=nearest routes each covered cell to its closest bone; default blend mixes same-person bones in overlaps. Optional token_indices select contextual attribute tokens without changing the text. token_bias adds an attention-logit bias to token_bias_indices in the attended context, preserving the other tokens. Optional reference_binding=[person,bone] injects a contrast against an existing binding; delta_scale (default0.5) limits contrast RMS relative to scene attention, with gain capped at4. Optional reference_attention=target shares target attention weights for token-aligned value contrasts and requires equal sequence lengths; default independent uses separately normalized target/reference attention. Self-attention defaults to joint neighbors with native background; self_attention_scope=partition softly mixes native attention with independent bone/background groups (self_dtype_fix_v1). strength and self_attention_strength (default 0.12) are fractions 0..1; radius sets normalized coverage; joint_falloff optionally tapers cross-attention near bone endpoints (joint_falloff_v1); route_samples optionally estimates subcell coverage for nearest routing (subcell_routes_v1). Graph bindings share schedule, block selection, self-attention strength and overlap_mode. Default delta retains target/reference feature injection. Use both outputs in the base sampling path."
+    DESCRIPTION = "Experimental training-free SDXL bone conditioning. routing_mode=graph (graph_v3) directly blends each bone's text attention at local queries and normalizes overlaps. Identical contexts batch local queries (grouped_contexts_v1), preserving per-bone weights and gates. overlap_mode=nearest routes each covered cell to its closest bone; default blend mixes same-person bones in overlaps. Optional token_indices select contextual attribute tokens without changing the text. token_bias adds an attention-logit bias to token_bias_indices in the attended context, preserving the other tokens. token_bias_text optionally resolves a unique phrase in both SDXL tokenizers (token_bias_text_v1). Optional reference_binding=[person,bone] injects a contrast against an existing binding; delta_scale (default0.5) limits contrast RMS relative to scene attention, with gain capped at4. Optional reference_attention=target shares target attention weights for token-aligned value contrasts and requires equal sequence lengths; default independent uses separately normalized target/reference attention. Self-attention defaults to joint neighbors with native background; self_attention_scope=partition softly mixes native attention with independent bone/background groups (self_dtype_fix_v1). strength and self_attention_strength (default 0.12) are fractions 0..1; radius sets normalized coverage; joint_falloff optionally tapers cross-attention near bone endpoints (joint_falloff_v1); route_samples optionally estimates subcell coverage for nearest routing (subcell_routes_v1). Graph bindings share schedule, block selection, self-attention strength and overlap_mode. Default delta retains target/reference feature injection. Use both outputs in the base sampling path."
 
     def inject(self, model, clip, positive, pose_file, bindings_json, samples_per_bone, confidence_threshold):
         config = model.get_model_object("model_config").unet_config
@@ -317,13 +341,26 @@ class BonePromptInject:
         if graph:
             if patches.get("attn1"):
                 raise ValueError("Graph bone routing cannot replace an existing attn1 replacement.")
+            for source in config_bindings:
+                if "token_bias_text" in source:
+                    if "token_bias_indices" in source or "token_indices" in source:
+                        raise ValueError("token_bias_text cannot be combined with token index selection.")
+                    source["token_bias_indices"] = resolve_bias_phrase(clip, source["text"], source["token_bias_text"])
             bindings = prepare_graph_bindings(bindings, config_bindings)
-        if any("start_percent" in binding or "end_percent" in binding for binding in bindings):
+            if bindings[0]["self_attention_scope"] in ("person", "target_person_read"):
+                attach_person_geometry(bindings, pose, confidence_threshold,
+                                       include_unbound=bindings[0]["self_attention_scope"] == "target_person_read")
+        if any("start_percent" in binding or "end_percent" in binding or "cross_start_percent" in binding for binding in bindings):
             sampling = model.get_model_object("model_sampling")
             for binding in bindings:
                 if "start_percent" in binding or "end_percent" in binding:
                     binding["start_sigma"] = sampling.percent_to_sigma(binding.get("start_percent", 0.0))
                     binding["end_sigma"] = sampling.percent_to_sigma(binding.get("end_percent", 1.0))
+                if "cross_start_percent" in binding:
+                    binding["cross_start_sigma"] = sampling.percent_to_sigma(binding["cross_start_percent"])
+                    binding["cross_end_sigma"] = sampling.percent_to_sigma(binding["cross_end_percent"])
+                    if binding["cross_start_percent"] == 0 and binding.get("cross_fade", 0) > 0:
+                        binding["cross_fade_start_sigma"] = float(sampling.sigma_max)
         positive = encode_graph_bindings(clip, positive, bindings) if graph else encode_bindings(clip, positive, bindings)
         patched = model.clone()
         patched.add_wrapper_with_key(WrappersMP.APPLY_MODEL, "bone_prompt", apply_bone_context)
